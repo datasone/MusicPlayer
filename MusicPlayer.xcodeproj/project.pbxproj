@@ -7,10 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		88097E301F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88097E2F1F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift */; };
+		884B50E21F602D7E00D49807 /* MusicPlayerFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 884B50E11F602D7E00D49807 /* MusicPlayerFactory.swift */; };
+		886940D91F5AA90C004A6897 /* MusicPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 886940D81F5AA90C004A6897 /* MusicPlayerManager.swift */; };
+		88841C9B1F5B0FFC00AA6A9B /* Global.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88841C9A1F5B0FFC00AA6A9B /* Global.swift */; };
+		88F5CD841F5A7FF70028C51C /* iTunes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F5CD831F5A7FF70028C51C /* iTunes.swift */; };
+		88F5CD861F5A80180028C51C /* Vox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F5CD851F5A80180028C51C /* Vox.swift */; };
+		88F5CD881F5A80300028C51C /* Spotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F5CD871F5A80300028C51C /* Spotify.swift */; };
+		88F5CD8A1F5A868B0028C51C /* MusicPlayerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88F5CD891F5A868B0028C51C /* MusicPlayerDelegate.swift */; };
+		88F5CD8D1F5A98AF0028C51C /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 88F5CD8C1F5A98AF0028C51C /* ScriptingBridge.framework */; };
 		OBJ_17 /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_8 /* MusicPlayer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		88097E2F1F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerManagerDelegate.swift; sourceTree = "<group>"; };
+		884B50E11F602D7E00D49807 /* MusicPlayerFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerFactory.swift; sourceTree = "<group>"; };
+		886940D81F5AA90C004A6897 /* MusicPlayerManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerManager.swift; sourceTree = "<group>"; };
+		88841C9A1F5B0FFC00AA6A9B /* Global.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
+		88F5CD831F5A7FF70028C51C /* iTunes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iTunes.swift; sourceTree = "<group>"; };
+		88F5CD851F5A80180028C51C /* Vox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vox.swift; sourceTree = "<group>"; };
+		88F5CD871F5A80300028C51C /* Spotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spotify.swift; sourceTree = "<group>"; };
+		88F5CD891F5A868B0028C51C /* MusicPlayerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerDelegate.swift; sourceTree = "<group>"; };
+		88F5CD8C1F5A98AF0028C51C /* ScriptingBridge.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ScriptingBridge.framework; path = System/Library/Frameworks/ScriptingBridge.framework; sourceTree = SDKROOT; };
 		BB4C3A241F56509100F1DDAA /* iTunes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = iTunes.h; sourceTree = "<group>"; };
 		BB4C3A251F56509100F1DDAA /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; path = module.modulemap; sourceTree = "<group>"; };
 		BB4C3A261F56509100F1DDAA /* Spotify.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Spotify.h; sourceTree = "<group>"; };
@@ -25,12 +43,50 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 0;
 			files = (
+				88F5CD8D1F5A98AF0028C51C /* ScriptingBridge.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		88097E311F5F703B006C6E51 /* Manager */ = {
+			isa = PBXGroup;
+			children = (
+				88097E2F1F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift */,
+				886940D81F5AA90C004A6897 /* MusicPlayerManager.swift */,
+				884B50E11F602D7E00D49807 /* MusicPlayerFactory.swift */,
+			);
+			path = Manager;
+			sourceTree = SOURCE_ROOT;
+		};
+		88841C981F5B0F5E00AA6A9B /* Protocol */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_8 /* MusicPlayer.swift */,
+				88F5CD891F5A868B0028C51C /* MusicPlayerDelegate.swift */,
+			);
+			path = Protocol;
+			sourceTree = "<group>";
+		};
+		88841C991F5B0FC500AA6A9B /* Player */ = {
+			isa = PBXGroup;
+			children = (
+				88F5CD831F5A7FF70028C51C /* iTunes.swift */,
+				88F5CD851F5A80180028C51C /* Vox.swift */,
+				88F5CD871F5A80300028C51C /* Spotify.swift */,
+			);
+			path = Player;
+			sourceTree = "<group>";
+		};
+		88F5CD8B1F5A98AE0028C51C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				88F5CD8C1F5A98AF0028C51C /* ScriptingBridge.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		BB4C3A231F56509100F1DDAA /* BridgeHeader */ = {
 			isa = PBXGroup;
 			children = (
@@ -56,6 +112,7 @@
 				OBJ_6 /* Package.swift */,
 				OBJ_7 /* Sources */,
 				OBJ_10 /* Products */,
+				88F5CD8B1F5A98AE0028C51C /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -63,7 +120,10 @@
 			isa = PBXGroup;
 			children = (
 				BB4C3A231F56509100F1DDAA /* BridgeHeader */,
-				OBJ_8 /* MusicPlayer.swift */,
+				88841C981F5B0F5E00AA6A9B /* Protocol */,
+				88841C991F5B0FC500AA6A9B /* Player */,
+				88097E311F5F703B006C6E51 /* Manager */,
+				88841C9A1F5B0FFC00AA6A9B /* Global.swift */,
 			);
 			path = Sources;
 			sourceTree = SOURCE_ROOT;
@@ -118,6 +178,14 @@
 			buildActionMask = 0;
 			files = (
 				OBJ_17 /* MusicPlayer.swift in Sources */,
+				88097E301F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift in Sources */,
+				884B50E21F602D7E00D49807 /* MusicPlayerFactory.swift in Sources */,
+				88F5CD841F5A7FF70028C51C /* iTunes.swift in Sources */,
+				886940D91F5AA90C004A6897 /* MusicPlayerManager.swift in Sources */,
+				88F5CD881F5A80300028C51C /* Spotify.swift in Sources */,
+				88F5CD861F5A80180028C51C /* Vox.swift in Sources */,
+				88F5CD8A1F5A868B0028C51C /* MusicPlayerDelegate.swift in Sources */,
+				88841C9B1F5B0FFC00AA6A9B /* Global.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -134,6 +202,7 @@
 				);
 				INFOPLIST_FILE = MusicPlayer.xcodeproj/MusicPlayer_Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_LDFLAGS = "$(inherited)";
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = ddddxxx.LyricsX.MusicPlayer;
@@ -155,6 +224,7 @@
 				);
 				INFOPLIST_FILE = MusicPlayer.xcodeproj/MusicPlayer_Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				OTHER_LDFLAGS = "$(inherited)";
 				OTHER_SWIFT_FLAGS = "$(inherited)";
 				PRODUCT_BUNDLE_IDENTIFIER = ddddxxx.LyricsX.MusicPlayer;
