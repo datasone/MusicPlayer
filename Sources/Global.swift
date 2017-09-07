@@ -11,8 +11,8 @@ import Foundation
 
 extension Notification.Name {
     static let iTunesPlayerInfo = Notification.Name("com.apple.iTunes.playerInfo")
-    static let SpotifyPlayerInfo = Notification.Name("com.spotify.client.PlaybackStateChanged")
-    static let VoxTrackChanged = Notification.Name("com.coppertino.Vox.trackChanged")
+    static let spotifyPlayerInfo = Notification.Name("com.spotify.client.PlaybackStateChanged")
+    static let voxTrackChanged = Notification.Name("com.coppertino.Vox.trackChanged")
 }
 
 // MARK: - Global Method Replacement

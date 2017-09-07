@@ -26,7 +26,7 @@ class Spotify {
     }
     
     fileprivate func _startPlayerTracking() {
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name(rawValue: "com.spotify.client.PlaybackStateChanged"), object: nil)
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.spotifyPlayerInfo, object: nil)
         generatePlayingEvent()
     }
     

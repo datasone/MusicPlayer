@@ -32,7 +32,7 @@ class Vox {
     }
     
     fileprivate func _startPlayerTracking() {
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name(rawValue: "com.coppertino.Vox.trackChanged"), object: nil)
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.voxTrackChanged, object: nil)
         
         currentPlaybackState = playbackState
         generatePlayingEvent()
