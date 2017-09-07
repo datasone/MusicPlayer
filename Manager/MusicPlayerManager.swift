@@ -205,6 +205,7 @@ fileprivate extension MusicPlayerManager {
                 return player
             }
         }
+        return nil
     }
     
     fileprivate func shouldHandleEvent(with player: MusicPlayer) -> Bool {
