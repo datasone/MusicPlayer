@@ -131,7 +131,7 @@ extension iTunes: PlaybackControl {
         if iTunes.isRunning {
             return MusicPlaybackState(iTunes.playerState)
         } else {
-            return .notRunning
+            return .stopped
         }
     }
     
@@ -282,7 +282,7 @@ fileprivate extension MusicPlaybackState {
         case iTunesEPlSRewinding:
             self = .rewinding
         default:
-            self = .notRunning
+            self = .stopped
         }
     }
 }

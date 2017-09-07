@@ -108,7 +108,7 @@ extension Spotify: PlaybackControl {
         if spotify.isRunning {
             return MusicPlaybackState(spotify.playerState)
         } else {
-            return .notRunning
+            return .stopped
         }
     }
     
@@ -204,7 +204,7 @@ fileprivate extension MusicPlaybackState {
         case SpotifyEPlSPaused:
             self = .paused
         default:
-            self = .notRunning
+            self = .stopped
         }
     }
 }

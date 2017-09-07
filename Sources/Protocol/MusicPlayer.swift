@@ -22,7 +22,6 @@ import Cocoa
 import ScriptingBridge
 
 public enum MusicPlaybackState {
-    case notRunning
     case stopped
     case playing
     case paused

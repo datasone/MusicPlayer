@@ -99,7 +99,7 @@ public extension MusicPlayerManager {
 extension MusicPlayerManager: PlaybackControl {
     
     public var playbackState: MusicPlaybackState {
-        guard currentPlayer != nil else { return .notRunning }
+        guard currentPlayer != nil else { return .stopped }
         return currentPlayer!.playbackState
     }
     

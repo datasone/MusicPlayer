@@ -20,7 +20,7 @@ class Vox {
     
     fileprivate var timerPosition: TimeInterval = 0
     
-    fileprivate var currentPlaybackState: MusicPlaybackState = .notRunning
+    fileprivate var currentPlaybackState: MusicPlaybackState = .stopped
     
     required init?() {
         guard let player = VoxApplication(bundleIdentifier: MusicPlayerName.Vox.bundleID) else { return nil }
@@ -64,7 +64,7 @@ class Vox {
     @objc fileprivate func playingEvent(_ timer: Timer) {
         let state = playbackState
         switch state {
-        case .notRunning:
+        case .stopped:
             timer.invalidate()
             if currentPlaybackState != state {
                 delegate?.playerDidQuit(self)
@@ -106,7 +106,7 @@ extension Vox: PlaybackControl {
         if vox.isRunning {
             return MusicPlaybackState(vox.playerState)
         } else {
-            return .notRunning
+            return .stopped
         }
     }
     
@@ -213,7 +213,7 @@ fileprivate extension MusicPlaybackState {
         case 1:
             self = .playing
         default:
-            self = .notRunning
+            self = .stopped
         }
     }
 }
