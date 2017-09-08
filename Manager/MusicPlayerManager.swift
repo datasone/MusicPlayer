@@ -13,7 +13,7 @@ public class MusicPlayerManager {
     
     fileprivate var musicPlayers: [MusicPlayer]
     
-    fileprivate var currentPlayer: MusicPlayer?
+    fileprivate(set) var currentPlayer: MusicPlayer?
     
     public init() {
         musicPlayers = []
@@ -24,11 +24,6 @@ public class MusicPlayerManager {
 
 public extension MusicPlayerManager {
     
-    /// The player name that manager currently tracking.
-    public var currentPlayerName: MusicPlayerName? {
-        return currentPlayer?.name
-    }
-    
     /// The player names that added to the manager.
     public var allPlayerNames: [MusicPlayerName] {
         var playerNames = [MusicPlayerName]()
@@ -38,16 +33,14 @@ public extension MusicPlayerManager {
         return playerNames
     }
     
-    /// Activate music player with name. If not exists, you can add it to the manager if needed.
-    public func activate(player name: MusicPlayerName, addPlayerIfNeeded: Bool) {
-        var player = existMusicPlayer(with: name)
-        if player == nil && addPlayerIfNeeded {
-            guard let p = MusicPlayerFactory.musicPlayer(name: name) else { return }
-            player = p
-        } else {
-            return
+    /// Return the player with selected name if exists.
+    public func existMusicPlayer(with name: MusicPlayerName) -> MusicPlayer? {
+        for player in musicPlayers {
+            if player.name == name {
+                return player
+            }
         }
-        player?.activate()
+        return nil
     }
     
     /// Add a music player to the manager.
@@ -58,6 +51,7 @@ public extension MusicPlayerManager {
             guard player.name != name else { return }
         }
         guard let player = MusicPlayerFactory.musicPlayer(name: name) else { return }
+        player.delegate = self
         player.startPlayerTracking()
         musicPlayers.append(player)
     }
@@ -94,118 +88,30 @@ public extension MusicPlayerManager {
     }
 }
 
-// MARK: - Public Playback Methods
-
-extension MusicPlayerManager: PlaybackControl {
-    
-    public var playbackState: MusicPlaybackState {
-        guard currentPlayer != nil else { return .stopped }
-        return currentPlayer!.playbackState
-    }
-    
-    public var repeatMode: MusicRepeatMode? {
-        get {
-            return currentPlayer?.repeatMode
-        }
-        set {
-            currentPlayer?.repeatMode = newValue
-        }
-    }
-    
-    public var shuffleMode: MusicShuffleMode? {
-        get {
-            return currentPlayer?.shuffleMode
-        }
-        set {
-            currentPlayer?.shuffleMode = newValue
-        }
-    }
-    
-    public var playerPosition: TimeInterval {
-        get {
-            guard currentPlayer != nil else { return 0 }
-            return currentPlayer!.playerPosition
-        }
-        set {
-            currentPlayer?.playerPosition = newValue
-        }
-    }
-    
-    public func play() {
-        currentPlayer?.play()
-    }
-    
-    public func pause() {
-        currentPlayer?.pause()
-    }
-    
-    public func stop() {
-        currentPlayer?.stop()
-    }
-    
-    public func playNext() {
-        currentPlayer?.playNext()
-    }
-    
-    public func playPrevious() {
-        currentPlayer?.playPrevious()
-    }
-}
-
 // MARK: - MusicPlayerDelegate
 
 extension MusicPlayerManager: MusicPlayerDelegate {
     
-    func player(_ player: MusicPlayer, didChangeTrack track: MusicTrack, atPosition position: TimeInterval) {
+    public func player(_ player: MusicPlayer, didChangeTrack track: MusicTrack, atPosition position: TimeInterval) {
         guard shouldHandleEvent(with: player) else { return }
         delegate?.manager(self, trackingPlayer: player.name, didChangeTrack: track, atPosition: position)
     }
     
-    func playerPlaying(_ player: MusicPlayer, atPosition postion: TimeInterval) {
+    public func player(_ player: MusicPlayer, playbackStateChanged playbackState: MusicPlaybackState, atPosition postion: TimeInterval) {
         guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayerPlaying: player.name, atPosition: postion)
+        
+        switch playbackState {
+        case .paused, .stopped:
+            currentPlayer = nil
+        default:
+            break
+        }
     }
     
-    func playerDidPaused(_ player: MusicPlayer) {
-        guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayerDidPaused: player.name)
-        currentPlayer = nil
-    }
-    
-    func playerDidStopped(_ player: MusicPlayer) {
-        guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayerDidStopped: player.name)
-        currentPlayer = nil
-    }
-    
-    func player(_ player: MusicPlayer, didFastForwardAtPosition position: TimeInterval) {
-        guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayer: player.name, didFastForwardAtPosition: position)
-    }
-    
-    func player(_ player: MusicPlayer, didRewindAtPosition position: TimeInterval) {
-        guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayer: player.name, didRewindAtPosition: position)
-    }
-    
-    func playerDidQuit(_ player: MusicPlayer) {
+    public func playerDidQuit(_ player: MusicPlayer) {
         guard shouldHandleEvent(with: player) else { return }
         delegate?.manager(self, trackingPlayerDidQuit: player.name)
         currentPlayer = nil
-    }
-}
-
-// MARK: - Private Mehtods
-
-fileprivate extension MusicPlayerManager {
-    
-    fileprivate func existMusicPlayer(with name: MusicPlayerName) -> MusicPlayer? {
-        for player in musicPlayers {
-            if player.name == name {
-                return player
-            }
-        }
-        return nil
     }
     
     fileprivate func shouldHandleEvent(with player: MusicPlayer) -> Bool {
@@ -219,5 +125,4 @@ fileprivate extension MusicPlayerManager {
             return false
         }
     }
-    
 }

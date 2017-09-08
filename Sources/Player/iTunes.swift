@@ -11,9 +11,9 @@ import BridgeHeader.iTunes
 
 class iTunes {
     
-    weak var _delegate: MusicPlayerDelegate?
+    weak var delegate: MusicPlayerDelegate?
     
-    fileprivate var _currentTrack: MusicTrack?
+    fileprivate(set) var currentTrack: MusicTrack?
     
     fileprivate var iTunes: iTunesApplication
     
@@ -27,26 +27,24 @@ class iTunes {
     }
     
     deinit {
-        _stopPlayerTracking()
+        stopPlayerTracking()
     }
     
-    fileprivate func _startPlayerTracking() {
-
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.iTunesPlayerInfo, object: nil)
+    func startPlayerTracking() {
         generatePlayingEvent()
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.iTunesPlayerInfo, object: nil)
     }
     
-    fileprivate func _stopPlayerTracking() {
-        DistributedNotificationCenter.default().removeObserver(self)
+    func stopPlayerTracking() {
         timer?.invalidate()
+        DistributedNotificationCenter.default().removeObserver(self)
     }
     
     @objc fileprivate func playerInfoChanged(_ notification: Notification) {
-        guard
-            let userInfo = notification.userInfo,
-            let playerState = userInfo["Player State"] as? String
-            else {
-                return
+        guard let userInfo = notification.userInfo,
+              let playerState = userInfo["Player State"] as? String
+        else {
+            return
         }
         
         switch playerState {
@@ -54,33 +52,31 @@ class iTunes {
         case "Paused":
             // Rewind and fast forward would send pause notification.
             guard playbackState == .paused else { return }
-            delegate?.playerDidPaused(self)
+            delegate?.player(self, playbackStateChanged: .paused, atPosition: playerPosition)
             checkRunningState()
-            break
             
         case "Stopped":
-            delegate?.playerDidStopped(self)
+            delegate?.player(self, playbackStateChanged: .stopped, atPosition: playerPosition)
             checkRunningState()
-            break
             
         case "Playing":
-            // Reset timer.
-            generatePlayingEvent()
-            
+            let currentPosition = playerPosition
             // Check whether track changed.
-            guard let newTrack = iTunes.currentTrack.musicTrack else { return }
-            if _currentTrack == nil || _currentTrack! != newTrack {
-                _currentTrack = newTrack
-                delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
+            if let newTrack = iTunes.currentTrack.musicTrack,
+               currentTrack == nil || currentTrack! != newTrack
+            {
+                currentTrack = newTrack
+                delegate?.player(self, didChangeTrack: newTrack, atPosition: currentPosition)
             }
-            break
+            delegate?.player(self, playbackStateChanged: .playing, atPosition: currentPosition)
+            generatePlayingEvent()
             
         default:
             break
         }
         
         if let location = userInfo["Location"] as? String {
-            _currentTrack?.url = URL(fileURLWithPath: location)
+            currentTrack?.url = URL(fileURLWithPath: location)
         }
     }
     
@@ -101,12 +97,10 @@ class iTunes {
         
         let iTunesPosition = iTunes.playerPosition
         let deltaPosition = timerPosition + MusicPlayerConfig.TimerCheckingInterval - iTunesPosition
-        if abs(deltaPosition) <= MusicPlayerConfig.ComparisonPrecision {
-            delegate?.playerPlaying(self, atPosition: iTunesPosition)
-        } else if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
-            delegate?.player(self, didFastForwardAtPosition: iTunesPosition)
-        } else {
-            delegate?.player(self, didRewindAtPosition: iTunesPosition)
+        if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
+            delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: iTunesPosition)
+        } else if deltaPosition > MusicPlayerConfig.ComparisonPrecision {
+            delegate?.player(self, playbackStateChanged: .rewinding, atPosition: iTunesPosition)
         }
         timerPosition = iTunesPosition
     }
@@ -123,9 +117,11 @@ class iTunes {
     }
 }
 
-// MARK: - Playback Control
+// MARK: - Music Player
 
-extension iTunes: PlaybackControl {
+extension iTunes: MusicPlayer {
+    
+    var name: MusicPlayerName { return .iTunes }
     
     var playbackState: MusicPlaybackState {
         if iTunes.isRunning {
@@ -144,9 +140,7 @@ extension iTunes: PlaybackControl {
             guard
                 iTunes.isRunning,
                 newValue != nil
-                else {
-                    return
-            }
+            else { return }
             iTunes.songRepeat = newValue!.iTunesERptValue
         }
     }
@@ -183,6 +177,10 @@ extension iTunes: PlaybackControl {
         }
     }
     
+    var originalPlayer: SBApplication {
+        return iTunes
+    }
+    
     func play() {
         guard iTunes.isRunning else { return }
         if playbackState != .playing {
@@ -211,44 +209,15 @@ extension iTunes: PlaybackControl {
     }
 }
 
-// MARK: - MusicPlayer
-
-extension iTunes: MusicPlayer {
-    
-    weak var delegate: MusicPlayerDelegate? {
-        get { return _delegate }
-        set { _delegate = newValue }
-    }
-    
-    var originalPlayer: SBApplication {
-        return iTunes
-    }
-    
-    var currentTrack: MusicTrack? {
-        return _currentTrack
-    }
-    
-    var name: MusicPlayerName { return .iTunes }
-    
-    func startPlayerTracking() {
-        _startPlayerTracking()
-    }
-    
-    func stopPlayerTracking() {
-        _stopPlayerTracking()
-    }
-}
-
 // MARK: - Track
 
 fileprivate extension iTunesTrack {
     
     var musicTrack: MusicTrack? {
-        guard
-            mediaKind == iTunesEMdKSong,
-            let name = name
-            else {
-                return nil
+        guard mediaKind == iTunesEMdKSong,
+              let name = name
+        else {
+            return nil
         }
         
         var artwork: NSImage? = nil

@@ -10,9 +10,9 @@ import BridgeHeader.Vox
 
 class Vox {
     
-    weak var _delegate: MusicPlayerDelegate?
+    weak var delegate: MusicPlayerDelegate?
     
-    fileprivate var _currentTrack: MusicTrack?
+    fileprivate(set) var currentTrack: MusicTrack?
     
     fileprivate var vox: VoxApplication
     
@@ -23,33 +23,34 @@ class Vox {
     fileprivate var currentPlaybackState: MusicPlaybackState = .stopped
     
     required init?() {
-        guard let player = VoxApplication(bundleIdentifier: MusicPlayerName.Vox.bundleID) else { return nil }
+        guard let player = VoxApplication(bundleIdentifier: MusicPlayerName.vox.bundleID) else { return nil }
         vox = player
     }
     
     deinit {
-        _stopPlayerTracking()
+        stopPlayerTracking()
     }
     
-    fileprivate func _startPlayerTracking() {
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.voxTrackChanged, object: nil)
-        
-        currentPlaybackState = playbackState
+    func startPlayerTracking() {
+        currentPlaybackState = .stopped
         generatePlayingEvent()
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.voxTrackChanged, object: nil)
     }
     
-    fileprivate func _stopPlayerTracking() {
+    func stopPlayerTracking() {
         DistributedNotificationCenter.default().removeObserver(self)
         timer?.invalidate()
     }
     
     @objc fileprivate func playerInfoChanged(_ notification: Notification) {
-        guard let newTrack = vox.musicTrack else { return }
-        
-        generatePlayingEvent()
-        if _currentTrack == nil || _currentTrack != newTrack {
-            delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
+        guard let newTrack = vox.musicTrack,
+              currentTrack == nil || currentTrack != newTrack
+        else {
+            return
         }
+        currentTrack = newTrack
+        delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
+        generatePlayingEvent()
     }
     
     // MARK: - Timer Events
@@ -66,29 +67,28 @@ class Vox {
         switch state {
         case .stopped:
             timer.invalidate()
-            if currentPlaybackState != state {
-                delegate?.playerDidQuit(self)
-            }
+            guard currentPlaybackState != state else { return }
+            currentPlaybackState = state
+            delegate?.playerDidQuit(self)
+            
         case .paused:
-            if currentPlaybackState != state {
-                currentPlaybackState = state
-                delegate?.playerDidPaused(self)
-            }
+            guard currentPlaybackState != state else { return }
+            currentPlaybackState = state
+            delegate?.player(self, playbackStateChanged: .paused, atPosition: playerPosition)
+            
         case .playing:
             let voxPosition = vox.currentTime
             let deltaPosition = timerPosition + MusicPlayerConfig.TimerCheckingInterval - voxPosition
             
             if currentPlaybackState != state {
                 currentPlaybackState = state
-                delegate?.playerPlaying(self, atPosition: voxPosition)
-            } else {
-                if abs(deltaPosition) <= MusicPlayerConfig.ComparisonPrecision {
-                    delegate?.playerPlaying(self, atPosition: voxPosition)
-                } else if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
-                    delegate?.player(self, didFastForwardAtPosition: voxPosition)
-                } else {
-                    delegate?.player(self, didRewindAtPosition: voxPosition)
-                }
+                delegate?.player(self, playbackStateChanged: .playing, atPosition: voxPosition)
+            }
+            
+            if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
+                delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: voxPosition)
+            } else if deltaPosition > MusicPlayerConfig.ComparisonPrecision {
+                delegate?.player(self, playbackStateChanged: .rewinding, atPosition: voxPosition)
             }
             
             timerPosition = voxPosition
@@ -98,9 +98,13 @@ class Vox {
     }
 }
 
-// MARK: - Playback Control
+// MARK: - Music Player
 
-extension Vox: PlaybackControl {
+extension Vox: MusicPlayer {
+    
+    var name: MusicPlayerName { return .vox }
+    
+    var originalPlayer: SBApplication { return vox }
     
     var playbackState: MusicPlaybackState {
         if vox.isRunning {
@@ -116,11 +120,10 @@ extension Vox: PlaybackControl {
             return MusicRepeatMode(vox.repeatState)
         }
         set {
-            guard
-                vox.isRunning,
-                newValue != nil
-                else {
-                    return
+            guard vox.isRunning,
+                  newValue != nil
+            else {
+                return
             }
             vox.repeatState = newValue!.intValue
         }
@@ -137,11 +140,10 @@ extension Vox: PlaybackControl {
             return vox.currentTime
         }
         set {
-            guard
-                vox.isRunning,
-                newValue >= 0
-                else {
-                    return
+            guard vox.isRunning,
+                  newValue >= 0
+            else {
+                return
             }
             vox.currentTime = newValue
         }
@@ -170,35 +172,6 @@ extension Vox: PlaybackControl {
     func playPrevious() {
         guard vox.isRunning else { return }
         vox.previous()
-    }
-}
-
-// MARK: - MusicPlayer
-
-extension Vox: MusicPlayer {
-    
-    weak var delegate: MusicPlayerDelegate? {
-        get { return _delegate }
-        set { _delegate = newValue }
-    }
-    
-    var currentTrack: MusicTrack? {
-        guard vox.isRunning else { return nil }
-        return _currentTrack
-    }
-    
-    var originalPlayer: SBApplication {
-        return vox
-    }
-    
-    var name: MusicPlayerName { return .Vox }
-    
-    func startPlayerTracking() {
-        _startPlayerTracking()
-    }
-    
-    func stopPlayerTracking() {
-        _stopPlayerTracking()
     }
 }
 
@@ -251,12 +224,11 @@ fileprivate extension MusicRepeatMode {
 fileprivate extension VoxApplication {
     
     var musicTrack: MusicTrack? {
-        guard
-            isRunning,
-            let id = uniqueID,
-            let title = track
-            else {
-                return nil
+        guard isRunning,
+              let id = uniqueID,
+              let title = track
+        else {
+            return nil
         }
         var url: URL? = nil
         if let trackURL = trackUrl {

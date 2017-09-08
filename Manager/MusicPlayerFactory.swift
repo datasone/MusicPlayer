@@ -13,9 +13,9 @@ class MusicPlayerFactory {
         switch name {
         case .iTunes:
             return iTunes()
-        case .Spotify:
+        case .spotify:
             return Spotify()
-        case .Vox:
+        case .vox:
             return Vox()
         }
     }

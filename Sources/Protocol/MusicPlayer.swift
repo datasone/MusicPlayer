@@ -43,16 +43,16 @@ public enum MusicShuffleMode {
 
 public enum MusicPlayerName: String {
     case iTunes = "iTunes"
-    case Vox = "Vox"
-    case Spotify = "Spotify"
+    case vox = "Vox"
+    case spotify = "Spotify"
     
     var bundleID: String {
         switch self {
         case .iTunes:
             return "com.apple.iTunes"
-        case .Vox:
+        case .vox:
             return "com.coppertino.Vox"
-        case .Spotify:
+        case .spotify:
             return "com.spotify.client"
         }
     }
@@ -74,7 +74,6 @@ public struct MusicTrack {
     var lyrics: String?
     var url: URL?
     
-    // To prevent property/method name conflict, player should not be extended directly.
     private(set) var originalTrack: SBObject
 }
 
@@ -84,30 +83,24 @@ extension MusicTrack: Equatable {
     }
 }
 
-public protocol PlaybackControl: class {
+public protocol MusicPlayer: class {
     
+    init?()
+    weak var delegate: MusicPlayerDelegate? { get set }
+    var name: MusicPlayerName { get }
+    var currentTrack: MusicTrack? { get }
     var playbackState: MusicPlaybackState { get }
     var repeatMode: MusicRepeatMode? { get set }
     var shuffleMode: MusicShuffleMode? { get set }
     var playerPosition: TimeInterval { get set }
+    
+    var originalPlayer: SBApplication { get }
     
     func play()
     func pause()
     func stop()
     func playNext()
     func playPrevious()
-}
-
-protocol MusicPlayer: PlaybackControl {
-    
-    init?()
-    
-    weak var delegate: MusicPlayerDelegate? { get set }
-    var name: MusicPlayerName { get }
-    var currentTrack: MusicTrack? { get }
-
-    // To prevent property/method name conflict, player should not be extended directly.
-    var originalPlayer: SBApplication { get }
     
     /// Make the player start Tracking the external player.
     func startPlayerTracking()
