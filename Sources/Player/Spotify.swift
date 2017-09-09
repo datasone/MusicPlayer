@@ -6,7 +6,8 @@
 //
 
 import Foundation
-import BridgeHeader.Spotify
+import ScriptingBridge
+import SpotifyBridge
 
 class Spotify {
     
@@ -21,7 +22,7 @@ class Spotify {
     fileprivate var timerPosition: TimeInterval = 0
     
     required init?() {
-        guard let player = SpotifyApplication(bundleIdentifier: MusicPlayerName.spotify.bundleID) else { return nil }
+        guard let player = SBApplication(bundleIdentifier: MusicPlayerName.spotify.bundleID) else { return nil }
         spotify = player
     }
     
@@ -38,9 +39,7 @@ class Spotify {
     @objc fileprivate func playerInfoChanged(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let playerState = userInfo["Player State"] as? String
-        else {
-            return
-        }
+        else { return }
         
         switch playerState {
             
@@ -55,7 +54,7 @@ class Spotify {
         case "Playing":
             let currentPosition = playerPosition
             // Check whether track changed.
-            if let newTrack = spotify.currentTrack.musicTrack,
+            if let newTrack = spotify.currentTrack?.musicTrack,
                currentTrack == nil || currentTrack! != newTrack
             {
                 currentTrack = newTrack
@@ -73,7 +72,7 @@ class Spotify {
     
     fileprivate func generatePlayingEvent() {
         timer?.invalidate()
-        timerPosition = spotify.playerPosition
+        timerPosition = playerPosition
         timer = Timer(timeInterval: MusicPlayerConfig.TimerCheckingInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
     }
@@ -84,7 +83,7 @@ class Spotify {
             return
         }
         
-        let spotifyPosition = spotify.playerPosition
+        let spotifyPosition = playerPosition
         let deltaPosition = timerPosition + MusicPlayerConfig.TimerCheckingInterval - spotifyPosition
         if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: spotifyPosition)
@@ -102,11 +101,10 @@ extension Spotify: MusicPlayer {
     var name: MusicPlayerName { return .spotify }
     
     var playbackState: MusicPlaybackState {
-        if spotify.isRunning {
-            return MusicPlaybackState(spotify.playerState)
-        } else {
-            return .stopped
-        }
+        guard isRunning,
+              let playerState = spotify.playerState
+        else { return .stopped }
+        return MusicPlaybackState(playerState)
     }
     
     var repeatMode: MusicRepeatMode? {
@@ -121,46 +119,46 @@ extension Spotify: MusicPlayer {
     
     var playerPosition: TimeInterval {
         get {
-            guard spotify.isRunning else { return 0 }
-            return spotify.playerPosition
+            guard isRunning,
+                  let playerPosition = spotify.playerPosition
+            else { return 0 }
+            return max(playerPosition, 0)
         }
         set {
-            guard spotify.isRunning,
+            guard isRunning,
                   newValue >= 0
-            else {
-                return
-            }
-            spotify.playerPosition = newValue
+            else { return }
+            spotify.setPlayerPosition?(newValue)
         }
     }
     
     func play() {
-        guard spotify.isRunning else { return }
-        spotify.play()
+        guard isRunning else { return }
+        spotify.play?()
     }
     
     func pause() {
-        guard spotify.isRunning else { return }
-        spotify.pause()
+        guard isRunning else { return }
+        spotify.pause?()
     }
     
     func stop() {
-        guard spotify.isRunning else { return }
-        spotify.pause()
+        guard isRunning else { return }
+        spotify.pause?()
     }
     
     func playNext() {
-        guard spotify.isRunning else { return }
-        spotify.nextTrack()
+        guard isRunning else { return }
+        spotify.nextTrack?()
     }
     
     func playPrevious() {
-        guard spotify.isRunning else { return }
-        spotify.previousTrack()
+        guard isRunning else { return }
+        spotify.previousTrack?()
     }
     
     var originalPlayer: SBApplication {
-        return spotify
+        return spotify as! SBApplication
     }
 }
 
@@ -170,14 +168,12 @@ fileprivate extension MusicPlaybackState {
     
     init(_ playbackState: SpotifyEPlS) {
         switch playbackState {
-        case SpotifyEPlSStopped:
+        case .stopped:
             self = .stopped
-        case SpotifyEPlSPlaying:
+        case .playing:
             self = .playing
-        case SpotifyEPlSPaused:
+        case .paused:
             self = .paused
-        default:
-            self = .stopped
         }
     }
 }
@@ -188,16 +184,15 @@ fileprivate extension SpotifyTrack {
     
     var musicTrack: MusicTrack? {
         
-        guard let id = id(),
-              let title = name
-        else {
-            return nil
-        }
+        guard let id = id?(),
+              let title = name,
+              let duration = duration
+        else { return nil }
         
         var url: URL? = nil
         if let spotifyUrl = spotifyUrl {
             url = URL(fileURLWithPath: spotifyUrl)
         }
-        return MusicTrack(id: id, title: title, album: album, artist: artist, duration: TimeInterval(duration), artwork: artwork, lyrics: nil, url: url, originalTrack: self)
+        return MusicTrack(id: id, title: title, album: album, artist: artist, duration: TimeInterval(duration), artwork: artwork, lyrics: nil, url: url, originalTrack: self as? SBObject)
     }
 }

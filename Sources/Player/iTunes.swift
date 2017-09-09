@@ -5,9 +5,9 @@
 //  Created by Michael Row on 2017/8/31.
 //
 
-import Foundation
-import BridgeHeader.iTunes
-
+import Cocoa
+import ScriptingBridge
+import iTunesBridge
 
 class iTunes {
     
@@ -22,7 +22,7 @@ class iTunes {
     fileprivate var timerPosition: TimeInterval = 0
     
     required init?() {
-        guard let player = iTunesApplication(bundleIdentifier: MusicPlayerName.iTunes.bundleID) else { return nil }
+        guard let player = SBApplication(bundleIdentifier: MusicPlayerName.iTunes.bundleID) else { return nil }
         iTunes = player
     }
     
@@ -62,7 +62,7 @@ class iTunes {
         case "Playing":
             let currentPosition = playerPosition
             // Check whether track changed.
-            if let newTrack = iTunes.currentTrack.musicTrack,
+            if let newTrack = iTunes.currentTrack?.musicTrack,
                currentTrack == nil || currentTrack! != newTrack
             {
                 currentTrack = newTrack
@@ -84,18 +84,19 @@ class iTunes {
     
     fileprivate func generatePlayingEvent() {
         timer?.invalidate()
-        timerPosition = iTunes.playerPosition
+        timerPosition = playerPosition
         timer = Timer(timeInterval: MusicPlayerConfig.TimerCheckingInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
     }
     
     @objc fileprivate func playingEvent(_ timer: Timer) {
-        guard playbackState == .playing else {
+        guard playbackState == .playing,
+              let iTunesPosition = iTunes.playerPosition
+        else {
             timer.invalidate()
             return
         }
         
-        let iTunesPosition = iTunes.playerPosition
         let deltaPosition = timerPosition + MusicPlayerConfig.TimerCheckingInterval - iTunesPosition
         if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: iTunesPosition)
@@ -112,7 +113,7 @@ class iTunes {
     }
     
     @objc fileprivate func runningState(_ timer: Timer) {
-        guard !iTunes.isRunning else { return }
+        guard !isRunning else { return }
         delegate?.playerDidQuit(self)
     }
 }
@@ -124,88 +125,86 @@ extension iTunes: MusicPlayer {
     var name: MusicPlayerName { return .iTunes }
     
     var playbackState: MusicPlaybackState {
-        if iTunes.isRunning {
-            return MusicPlaybackState(iTunes.playerState)
-        } else {
-            return .stopped
-        }
+        guard isRunning,
+              let playerState = iTunes.playerState
+        else { return .stopped }
+        return MusicPlaybackState(playerState)
     }
     
     var repeatMode: MusicRepeatMode? {
         get {
-            guard iTunes.isRunning else { return nil }
-            return MusicRepeatMode(iTunes.songRepeat)
+            guard isRunning,
+                  let songRepeat = iTunes.songRepeat
+            else { return nil }
+            return MusicRepeatMode(songRepeat)
         }
         set {
-            guard
-                iTunes.isRunning,
-                newValue != nil
+            guard isRunning,
+                  let songRepeat = newValue?.iTunesERptValue
             else { return }
-            iTunes.songRepeat = newValue!.iTunesERptValue
+            iTunes.setSongRepeat?(songRepeat)
         }
     }
     
     var shuffleMode: MusicShuffleMode? {
         get {
-            guard iTunes.isRunning else { return nil }
-            return MusicShuffleMode(iTunes.shuffleMode)
+            guard isRunning,
+                  let shuffleMode = iTunes.shuffleMode
+            else { return nil }
+            return MusicShuffleMode(shuffleMode)
         }
         set {
-            guard
-                iTunes.isRunning,
-                newValue != nil
-                else {
-                    return
-            }
-            iTunes.shuffleMode = newValue!.iTunesEShMValue
+            guard isRunning,
+                  let shuffleMode = newValue?.iTunesEShMValue
+            else { return }
+            iTunes.setShuffleMode?(shuffleMode)
         }
     }
     
     var playerPosition: TimeInterval {
         get {
-            guard iTunes.isRunning else { return 0 }
-            return iTunes.playerPosition
+            guard isRunning,
+                  let playerPosition = iTunes.playerPosition
+            else { return 0 }
+            return max(playerPosition, 0)
         }
         set {
-            guard
-                iTunes.isRunning,
-                newValue >= 0
-                else {
-                    return
-            }
-            iTunes.playerPosition = newValue
+            guard isRunning,
+                  newValue >= 0
+            else { return }
+            iTunes.setPlayerPosition?(newValue)
         }
     }
     
     var originalPlayer: SBApplication {
-        return iTunes
+        return iTunes as! SBApplication
     }
     
     func play() {
-        guard iTunes.isRunning else { return }
-        if playbackState != .playing {
-            iTunes.playpause()
-        }
+        guard isRunning,
+              playbackState != .playing
+        else { return }
+        iTunes.playpause?()
     }
     
     func pause() {
-        guard iTunes.isRunning else { return }
-        iTunes.pause()
+        guard isRunning else { return }
+        iTunes.pause?()
     }
     
     func stop() {
-        guard iTunes.isRunning else { return }
-        iTunes.stop()
+        guard isRunning else { return }
+        iTunes.stop?()
     }
     
     func playNext() {
-        guard iTunes.isRunning else { return }
-        iTunes.nextTrack()
+        guard isRunning else { return }
+        iTunes.nextTrack?()
     }
     
     func playPrevious() {
-        guard iTunes.isRunning else { return }
-        iTunes.previousTrack()
+        guard isRunning else { return }
+        iTunes.previousTrack?()
     }
 }
 
@@ -214,22 +213,21 @@ extension iTunes: MusicPlayer {
 fileprivate extension iTunesTrack {
     
     var musicTrack: MusicTrack? {
-        guard mediaKind == iTunesEMdKSong,
-              let name = name
-        else {
-            return nil
-        }
+        guard mediaKind == .music,
+              let id = id?(),
+              let name = name,
+              let duration = duration
+        else { return nil }
         
         var artwork: NSImage? = nil
-        if
-            let artworks = artworks(),
-            artworks.count > 0,
-            let iTunesArtwork = artworks[0] as? iTunesArtwork
+        if let artworks = artworks?(),
+           artworks.count > 0,
+           let iTunesArtwork = artworks[0] as? iTunesArtwork
         {
             artwork = iTunesArtwork.data
         }
 
-        return MusicTrack(id: String(id()), title: name, album: album, artist: artist, duration: duration, artwork: artwork, lyrics: lyrics, url: nil, originalTrack: self)
+        return MusicTrack(id: String(id), title: name, album: album, artist: artist, duration: duration, artwork: artwork, lyrics: lyrics, url: nil, originalTrack: self as? SBObject)
     }
     
 }
@@ -240,72 +238,66 @@ fileprivate extension MusicPlaybackState {
     
     init(_ playbackState: iTunesEPlS) {
         switch playbackState {
-        case iTunesEPlSStopped:
+        case .stopped:
             self = .stopped
-        case iTunesEPlSPlaying:
+        case .playing:
             self = .playing
-        case iTunesEPlSPaused:
+        case .paused:
             self = .paused
-        case iTunesEPlSFastForwarding:
+        case .fastForwarding:
             self = .fastForwarding
-        case iTunesEPlSRewinding:
+        case .rewinding:
             self = .rewinding
-        default:
-            self = .stopped
         }
     }
 }
 
 fileprivate extension MusicRepeatMode {
     
-    init?(_ repeateMode: iTunesERpt) {
+    init(_ repeateMode: iTunesERpt) {
         switch repeateMode {
-        case iTunesERptOff:
+        case .off:
             self = .none
-        case iTunesERptOne:
+        case .one:
             self = .one
-        case iTunesERptAll:
+        case .all:
             self = .all
-        default:
-            return nil
         }
     }
     
     var iTunesERptValue: iTunesERpt {
         switch self {
         case .none:
-            return iTunesERptOff
+            return .off
         case .one:
-            return iTunesERptOne
+            return .one
         case .all:
-            return iTunesERptAll
+            return .all
         }
     }
 }
 
 fileprivate extension MusicShuffleMode {
     
-    init?(_ shuffleMode: iTunesEShM) {
+    init(_ shuffleMode: iTunesEShM) {
         switch shuffleMode {
-        case iTunesEShMSongs:
+        case .songs:
             self = .songs
-        case iTunesEShMAlbums:
+        case .albums:
             self = .albums
-        case iTunesEShMGroupings:
+        case .groupings:
             self = .groupings
-        default:
-            return nil
         }
     }
     
     var iTunesEShMValue: iTunesEShM {
         switch self {
         case .songs:
-            return iTunesEShMSongs
+            return .songs
         case .albums:
-            return iTunesEShMAlbums
+            return .albums
         case .groupings:
-            return iTunesEShMGroupings
+            return .groupings
         }
     }
 }

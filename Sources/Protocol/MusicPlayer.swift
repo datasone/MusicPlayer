@@ -74,7 +74,7 @@ public struct MusicTrack {
     var lyrics: String?
     var url: URL?
     
-    private(set) var originalTrack: SBObject
+    private(set) var originalTrack: SBObject?
 }
 
 extension MusicTrack: Equatable {
