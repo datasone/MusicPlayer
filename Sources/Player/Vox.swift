@@ -33,7 +33,12 @@ class Vox {
     }
     
     func startPlayerTracking() {
-        currentPlaybackState = .stopped
+        // Initialize Tracking state.
+        musicTrackChecking()
+        currentPlaybackState = playbackState
+        delegate?.player(self, playbackStateChanged: currentPlaybackState, atPosition: playerPosition)
+        
+        // start tracking.
         generatePlayingEvent()
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.voxTrackChanged, object: nil)
     }
@@ -43,24 +48,29 @@ class Vox {
         timer?.invalidate()
     }
     
+    // MARK: - Notification Events
+    
     @objc fileprivate func playerInfoChanged(_ notification: Notification) {
-        guard let newTrack = vox.musicTrack,
+        musicTrackChecking()
+        generatePlayingEvent()
+    }
+    
+    fileprivate func musicTrackChecking() {
+        guard isRunning,
+              let newTrack = vox.musicTrack,
               currentTrack == nil || currentTrack != newTrack
-        else {
-            return
-        }
+        else { return }
         currentTrack = newTrack
         delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
-        generatePlayingEvent()
     }
     
     // MARK: - Timer Events
     
     fileprivate func generatePlayingEvent() {
         timer?.invalidate()
-        timerPosition = playerPosition
-        timer = Timer(timeInterval: MusicPlayerConfig.TimerCheckingInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
+        timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
+        timerPosition = playerPosition
     }
     
     @objc fileprivate func playingEvent(_ timer: Timer) {
@@ -79,16 +89,16 @@ class Vox {
             
         case .playing:
             let voxPosition = playerPosition
-            let deltaPosition = timerPosition + MusicPlayerConfig.TimerCheckingInterval - voxPosition
+            let deltaPosition = timerPosition + MusicPlayerConfig.TimerInterval - voxPosition
             
             if currentPlaybackState != state {
                 currentPlaybackState = state
                 delegate?.player(self, playbackStateChanged: .playing, atPosition: voxPosition)
             }
             
-            if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
+            if deltaPosition < -MusicPlayerConfig.Precision {
                 delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: voxPosition)
-            } else if deltaPosition > MusicPlayerConfig.ComparisonPrecision {
+            } else if deltaPosition > MusicPlayerConfig.Precision {
                 delegate?.player(self, playbackStateChanged: .rewinding, atPosition: voxPosition)
             }
             

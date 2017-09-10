@@ -27,6 +27,15 @@ public enum MusicPlaybackState {
     case paused
     case fastForwarding
     case rewinding
+    
+    var isActiveState: Bool {
+        switch self {
+        case .playing, .fastForwarding, .rewinding:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 public enum MusicRepeatMode {
@@ -59,22 +68,22 @@ public enum MusicPlayerName: String {
 }
 
 struct MusicPlayerConfig {
-    static let TimerCheckingInterval = 0.5
-    static let ComparisonPrecision = 0.1
+    static let TimerInterval = 0.5
+    static let Precision = 0.5
 }
 
 public struct MusicTrack {
     
-    private(set) var id: String
-    private(set) var title: String
-    private(set) var album: String?
-    private(set) var artist: String?
-    private(set) var duration: TimeInterval
-    var artwork: NSImage?
-    var lyrics: String?
-    var url: URL?
+    public private(set) var id: String
+    public private(set) var title: String
+    public private(set) var album: String?
+    public private(set) var artist: String?
+    public private(set) var duration: TimeInterval
+    public var artwork: NSImage?
+    public var lyrics: String?
+    public var url: URL?
     
-    private(set) var originalTrack: SBObject?
+    public private(set) var originalTrack: SBObject?
 }
 
 extension MusicTrack: Equatable {

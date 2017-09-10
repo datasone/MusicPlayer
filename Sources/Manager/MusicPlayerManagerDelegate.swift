@@ -13,35 +13,35 @@ public protocol MusicPlayerManagerDelegate: class {
     ///
     /// - Parameters:
     ///   - manager: The manager to handle all players.
-    ///   - name: Name of the music player.
+    ///   - player: Current music player that manager is tracking to.
     ///   - track: The track the player change to.
     ///   - position: The player's current playing position.
-    func manager(_ manager: MusicPlayerManager, trackingPlayer name: MusicPlayerName, didChangeTrack track: MusicTrack, atPosition position: TimeInterval)
+    func manager(_ manager: MusicPlayerManager, trackingPlayer player: MusicPlayer, didChangeTrack track: MusicTrack, atPosition position: TimeInterval)
     
     
     /// Tells the delegate the playback state of the tracking player has been changed.
     ///
     /// - Parameters:
     ///   - manager: The manager to handle all players.
-    ///   - name: Name of the music player.
+    ///   - player: Current music player that manager is tracking to.
     ///   - playbackState: The player's playback state.
     ///   - position: The player's current playing position.
-    func manager(_ manager: MusicPlayerManager, trackingPlayer name: MusicPlayerName, playbackStateChanged playbackState: MusicPlaybackState, atPosition position: TimeInterval)
+    func manager(_ manager: MusicPlayerManager, trackingPlayer player: MusicPlayer, playbackStateChanged playbackState: MusicPlaybackState, atPosition position: TimeInterval)
     
     
     /// Tells the delegate the manager's tracking player has quitted.
     ///
     /// - Parameters:
     ///   - manager: The manager to handle all players.
-    ///   - name: Name of the music player.
-    func manager(_ manager: MusicPlayerManager, trackingPlayerDidQuit name: MusicPlayerName)
+    ///   - player: Current music player that manager is tracking to.
+    func manager(_ manager: MusicPlayerManager, trackingPlayerDidQuit player: MusicPlayer)
     
     
     /// Tells the delegate the manager has changed its tracking player.
     ///
     /// - Parameters:
     ///   - manager: The manager to handle all players.
-    ///   - name: Name of the new music player.
-    func manager(_ manager: MusicPlayerManager, trackingPlayerDidChange name: MusicPlayerName)
+    ///   - player: Current music player that manager is tracking to.
+    func manager(_ manager: MusicPlayerManager, trackingPlayerDidChange player: MusicPlayer)
     
 }

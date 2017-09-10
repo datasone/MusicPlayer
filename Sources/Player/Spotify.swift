@@ -26,7 +26,16 @@ class Spotify {
         spotify = player
     }
     
+    deinit {
+        stopPlayerTracking()
+    }
+    
     func startPlayerTracking() {
+        // Initialize Tracking state.
+        musicTrackChecking()
+        delegate?.player(self, playbackStateChanged: playbackState, atPosition: playerPosition)
+        
+        // start tracking.
         generatePlayingEvent()
         DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.spotifyPlayerInfo, object: nil)
     }
@@ -35,6 +44,8 @@ class Spotify {
         timer?.invalidate()
         DistributedNotificationCenter.default().removeObserver(self)
     }
+    
+    // MARK: - Notification Events
     
     @objc fileprivate func playerInfoChanged(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
@@ -52,15 +63,8 @@ class Spotify {
             timer?.invalidate()
             
         case "Playing":
-            let currentPosition = playerPosition
-            // Check whether track changed.
-            if let newTrack = spotify.currentTrack?.musicTrack,
-               currentTrack == nil || currentTrack! != newTrack
-            {
-                currentTrack = newTrack
-                delegate?.player(self, didChangeTrack: newTrack, atPosition: currentPosition)
-            }
-            delegate?.player(self, playbackStateChanged: .playing, atPosition: currentPosition)
+            musicTrackChecking()
+            delegate?.player(self, playbackStateChanged: .playing, atPosition: playerPosition)
             generatePlayingEvent()
             
         default:
@@ -68,26 +72,36 @@ class Spotify {
         }
     }
     
+    fileprivate func musicTrackChecking() {
+        guard isRunning,
+              let newTrack = spotify.currentTrack?.musicTrack,
+              currentTrack == nil || currentTrack! != newTrack
+        else { return }
+        currentTrack = newTrack
+        delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
+    }
+    
     // MARK: - Timer Events
     
     fileprivate func generatePlayingEvent() {
         timer?.invalidate()
-        timerPosition = playerPosition
-        timer = Timer(timeInterval: MusicPlayerConfig.TimerCheckingInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
+        timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
+        timerPosition = playerPosition
     }
     
     @objc fileprivate func playingEvent(_ timer: Timer) {
-        guard playbackState == .playing else {
+        guard playbackState.isActiveState
+        else {
             timer.invalidate()
             return
         }
         
         let spotifyPosition = playerPosition
-        let deltaPosition = timerPosition + MusicPlayerConfig.TimerCheckingInterval - spotifyPosition
-        if deltaPosition < -MusicPlayerConfig.ComparisonPrecision {
+        let deltaPosition = timerPosition + MusicPlayerConfig.TimerInterval - spotifyPosition
+        if deltaPosition < -MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: spotifyPosition)
-        } else if deltaPosition > MusicPlayerConfig.ComparisonPrecision {
+        } else if deltaPosition > MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .rewinding, atPosition: spotifyPosition)
         }
         timerPosition = spotifyPosition

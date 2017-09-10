@@ -11,9 +11,9 @@ public class MusicPlayerManager {
     
     public weak var delegate: MusicPlayerManagerDelegate?
     
-    fileprivate var musicPlayers: [MusicPlayer]
+    public fileprivate(set) var musicPlayers: [MusicPlayer]
     
-    fileprivate(set) var currentPlayer: MusicPlayer?
+    public fileprivate(set) weak var currentPlayer: MusicPlayer?
     
     public init() {
         musicPlayers = []
@@ -54,6 +54,8 @@ public extension MusicPlayerManager {
         player.delegate = self
         player.startPlayerTracking()
         musicPlayers.append(player)
+        
+        selectMusicPlayer(with: player)
     }
     
     /// Add music players to the manager.
@@ -74,6 +76,10 @@ public extension MusicPlayerManager {
             guard player.name == name else { continue }
             player.stopPlayerTracking()
             musicPlayers.remove(at: index)
+            
+            if currentPlayer === player {
+                selectMusicPlayerFromList()
+            }
             return
         }
     }
@@ -86,6 +92,14 @@ public extension MusicPlayerManager {
             remove(musicPlayer: name)
         }
     }
+    
+    /// Remove all music players from the manager.
+    public func removeAllMusicPlayers() {
+        for player in musicPlayers {
+            player.stopPlayerTracking()
+        }
+        musicPlayers.removeAll()
+    }
 }
 
 // MARK: - MusicPlayerDelegate
@@ -93,36 +107,57 @@ public extension MusicPlayerManager {
 extension MusicPlayerManager: MusicPlayerDelegate {
     
     public func player(_ player: MusicPlayer, didChangeTrack track: MusicTrack, atPosition position: TimeInterval) {
-        guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayer: player.name, didChangeTrack: track, atPosition: position)
+        selectMusicPlayer(with: player)
+        guard currentPlayer === player else { return }
+        delegate?.manager(self, trackingPlayer: player, didChangeTrack: track, atPosition: position)
     }
     
     public func player(_ player: MusicPlayer, playbackStateChanged playbackState: MusicPlaybackState, atPosition postion: TimeInterval) {
-        guard shouldHandleEvent(with: player) else { return }
+        selectMusicPlayer(with: player)
+        guard currentPlayer === player else { return }
+        delegate?.manager(self, trackingPlayer: player, playbackStateChanged: playbackState, atPosition: postion)
         
-        switch playbackState {
-        case .paused, .stopped:
-            currentPlayer = nil
-        default:
-            break
+        if !playbackState.isActiveState {
+            selectMusicPlayerFromList()
         }
     }
     
     public func playerDidQuit(_ player: MusicPlayer) {
-        guard shouldHandleEvent(with: player) else { return }
-        delegate?.manager(self, trackingPlayerDidQuit: player.name)
+        guard currentPlayer === player else { return }
         currentPlayer = nil
+        delegate?.manager(self, trackingPlayerDidQuit: player)
+        selectMusicPlayerFromList()
     }
     
-    fileprivate func shouldHandleEvent(with player: MusicPlayer) -> Bool {
-        if currentPlayer == nil {
-            currentPlayer = player
-            delegate?.manager(self, trackingPlayerDidChange: player.name)
-            return true
-        } else if (currentPlayer!.name == player.name) {
-            return true
-        } else {
+    fileprivate func selectMusicPlayerFromList() {
+        for player in musicPlayers {
+            selectMusicPlayer(with: player)
+            
+            if let playerState = currentPlayer?.playbackState,
+               playerState.isActiveState {
+                return
+            }
+        }
+    }
+    
+    fileprivate func selectMusicPlayer(with player: MusicPlayer) {
+        guard shouldChangePlayer(with: player) else { return }
+        currentPlayer = player
+        delegate?.manager(self, trackingPlayerDidChange: player)
+    }
+    
+    fileprivate func shouldChangePlayer(with player: MusicPlayer) -> Bool {
+        // check wheter the new player and current one are the same player.
+        guard currentPlayer !== player else { return false }
+        // check the new player's playback state
+        guard player.playbackState.isActiveState else { return false }
+        // check current player's playback state
+        guard let playbackState = currentPlayer?.playbackState else { return true }
+        if playbackState.isActiveState {
             return false
+        } else {
+            return true
         }
     }
 }
+
