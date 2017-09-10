@@ -76,8 +76,10 @@ public extension MusicPlayerManager {
             guard player.name == name else { continue }
             player.stopPlayerTracking()
             musicPlayers.remove(at: index)
-            
-            if currentPlayer === player {
+
+            // if the removal is the current player, we should select a new one.
+            if currentPlayer?.name == player.name {
+                currentPlayer = nil
                 selectMusicPlayerFromList()
             }
             return
@@ -108,13 +110,13 @@ extension MusicPlayerManager: MusicPlayerDelegate {
     
     public func player(_ player: MusicPlayer, didChangeTrack track: MusicTrack, atPosition position: TimeInterval) {
         selectMusicPlayer(with: player)
-        guard currentPlayer === player else { return }
+        guard currentPlayer?.name == player.name else { return }
         delegate?.manager(self, trackingPlayer: player, didChangeTrack: track, atPosition: position)
     }
     
     public func player(_ player: MusicPlayer, playbackStateChanged playbackState: MusicPlaybackState, atPosition postion: TimeInterval) {
         selectMusicPlayer(with: player)
-        guard currentPlayer === player else { return }
+        guard currentPlayer?.name == player.name else { return }
         delegate?.manager(self, trackingPlayer: player, playbackStateChanged: playbackState, atPosition: postion)
         
         if !playbackState.isActiveState {
