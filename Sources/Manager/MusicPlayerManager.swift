@@ -101,6 +101,7 @@ public extension MusicPlayerManager {
             player.stopPlayerTracking()
         }
         musicPlayers.removeAll()
+        currentPlayer = nil
     }
 }
 

@@ -69,7 +69,7 @@ public enum MusicPlayerName: String {
 
 struct MusicPlayerConfig {
     static let TimerInterval = 0.5
-    static let Precision = 0.5
+    static let Precision = 0.25
 }
 
 public struct MusicTrack {

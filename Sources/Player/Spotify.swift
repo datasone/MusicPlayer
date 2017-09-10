@@ -90,13 +90,16 @@ class Spotify {
         timerPosition = playerPosition
     }
     
+    /// Catch the reposition event
     @objc fileprivate func playingEvent(_ timer: Timer) {
+        // check playback state
         guard playbackState.isActiveState
         else {
             timer.invalidate()
             return
         }
         
+        // check position
         let spotifyPosition = playerPosition
         let deltaPosition = timerPosition + MusicPlayerConfig.TimerInterval - spotifyPosition
         if deltaPosition < -MusicPlayerConfig.Precision {

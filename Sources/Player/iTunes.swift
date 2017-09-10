@@ -19,7 +19,7 @@ class iTunes {
     
     fileprivate var timer: Timer?
     
-    fileprivate var timerPosition: TimeInterval = 0
+    fileprivate var trackStartTime: TimeInterval = 0
     
     required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.iTunes.bundleID) else { return nil }
@@ -93,12 +93,15 @@ class iTunes {
     // MARK: Timer Events
     
     fileprivate func generatePlayingEvent() {
+        // start timer
         timer?.invalidate()
         timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(playingEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
-        timerPosition = playerPosition
+        // write down the track start time
+        trackStartTime = trackStartDate(with: playerPosition)
     }
     
+    /// Catch the reposition event
     @objc fileprivate func playingEvent(_ timer: Timer) {
         // check playback state
         guard playbackState.isActiveState
@@ -109,13 +112,15 @@ class iTunes {
         
         // check position
         let iTunesPosition = playerPosition
-        let deltaPosition = timerPosition + MusicPlayerConfig.TimerInterval - iTunesPosition
+        let accurateStartTime = trackStartDate(with: iTunesPosition)
+        
+        let deltaPosition = accurateStartTime - trackStartTime
         if deltaPosition < -MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: iTunesPosition)
         } else if deltaPosition > MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .rewinding, atPosition: iTunesPosition)
         }
-        timerPosition = iTunesPosition
+        trackStartTime = accurateStartTime
     }
     
     fileprivate func checkRunningState() {
@@ -127,6 +132,11 @@ class iTunes {
     @objc fileprivate func runningState(_ timer: Timer) {
         guard !isRunning else { return }
         delegate?.playerDidQuit(self)
+    }
+    
+    fileprivate func trackStartDate(with playerPosition: TimeInterval) -> TimeInterval {
+        let currentTime = NSDate().timeIntervalSince1970
+        return currentTime - playerPosition
     }
 }
 
