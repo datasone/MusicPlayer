@@ -19,7 +19,7 @@ class iTunes {
     
     fileprivate var timer: Timer?
     
-    fileprivate var trackStartTime: TimeInterval = 0
+    fileprivate var _trackStartTime: TimeInterval = 0
     
     required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.iTunes.bundleID) else { return nil }
@@ -85,15 +85,15 @@ class iTunes {
         
         // check position
         let iTunesPosition = playerPosition
-        let accurateStartTime = trackStartDate(with: iTunesPosition)
+        let accurateStartTime = trackStartTime
         
-        let deltaPosition = accurateStartTime - trackStartTime
+        let deltaPosition = accurateStartTime - _trackStartTime
         if deltaPosition < -MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: iTunesPosition)
         } else if deltaPosition > MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .rewinding, atPosition: iTunesPosition)
         }
-        trackStartTime = accurateStartTime
+        _trackStartTime = accurateStartTime
     }
     
     @objc fileprivate func runningCheckEvent(_ timer: Timer) {
@@ -132,20 +132,13 @@ class iTunes {
         timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(repositionCheckEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
         // write down the track start time
-        trackStartTime = trackStartDate(with: playerPosition)
+        _trackStartTime = trackStartTime
     }
     
     fileprivate func startRunningObserving() {
         timer?.invalidate()
         timer = Timer(timeInterval: 1.5, target: self, selector: #selector(runningCheckEvent(_:)), userInfo: nil, repeats: false)
         RunLoop.current.add(timer!, forMode: .commonModes)
-    }
-
-    // MARK: - Private
-    
-    fileprivate func trackStartDate(with playerPosition: TimeInterval) -> TimeInterval {
-        let currentTime = NSDate().timeIntervalSince1970
-        return currentTime - playerPosition
     }
 }
 

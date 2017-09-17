@@ -19,7 +19,7 @@ class Vox {
     
     fileprivate var timer: Timer?
     
-    fileprivate var trackStartTime: TimeInterval = 0
+    fileprivate var _trackStartTime: TimeInterval = 0
     
     fileprivate var currentPlaybackState: MusicPlaybackState = .stopped
     
@@ -98,15 +98,15 @@ class Vox {
     
     fileprivate func repositionCheckEvent(_ position: TimeInterval) {
         // check position
-        let accurateStartTime = trackStartDate(with: position)
+        let accurateStartTime = trackStartTime
         
-        let deltaPosition = accurateStartTime - trackStartTime
+        let deltaPosition = accurateStartTime - _trackStartTime
         if deltaPosition < -MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: position)
         } else if deltaPosition > MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .rewinding, atPosition: position)
         }
-        trackStartTime = accurateStartTime
+        _trackStartTime = accurateStartTime
     }
     
     // MARK: - Notification Events
@@ -124,14 +124,7 @@ class Vox {
         timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(playbackStateCheckEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
         // write down the track start time
-        trackStartTime = trackStartDate(with: playerPosition)
-    }
-    
-    // MARK: - Private
-    
-    fileprivate func trackStartDate(with playerPosition: TimeInterval) -> TimeInterval {
-        let currentTime = NSDate().timeIntervalSince1970
-        return currentTime - playerPosition
+        _trackStartTime = trackStartTime
     }
 }
 

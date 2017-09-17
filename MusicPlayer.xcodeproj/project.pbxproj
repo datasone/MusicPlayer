@@ -19,6 +19,8 @@
 		88841C9B1F5B0FFC00AA6A9B /* Global.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88841C9A1F5B0FFC00AA6A9B /* Global.swift */; };
 		8896CE191F6E604100A49591 /* Spotify+MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8896CE181F6E604100A49591 /* Spotify+MusicPlayer.swift */; };
 		8896CE1B1F6E605800A49591 /* Vox+MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8896CE1A1F6E605800A49591 /* Vox+MusicPlayer.swift */; };
+		8896CE1E1F6E6B5C00A49591 /* Enumeration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8896CE1D1F6E6B5C00A49591 /* Enumeration.swift */; };
+		8896CE201F6E6BEE00A49591 /* MusicTrack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8896CE1F1F6E6BEE00A49591 /* MusicTrack.swift */; };
 		88A250811F63EB4700AF2455 /* Vox.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A2507F1F63EB4700AF2455 /* Vox.swift */; };
 		88A250821F63EB4700AF2455 /* Spotify.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A250801F63EB4700AF2455 /* Spotify.swift */; };
 		88BB00141F64372B00F65B7C /* iTunesBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 885CC6B01F6417FB00CFE9C7 /* iTunesBridge.framework */; };
@@ -76,6 +78,8 @@
 		88841C9A1F5B0FFC00AA6A9B /* Global.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
 		8896CE181F6E604100A49591 /* Spotify+MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Spotify+MusicPlayer.swift"; sourceTree = "<group>"; };
 		8896CE1A1F6E605800A49591 /* Vox+MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Vox+MusicPlayer.swift"; sourceTree = "<group>"; };
+		8896CE1D1F6E6B5C00A49591 /* Enumeration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enumeration.swift; sourceTree = "<group>"; };
+		8896CE1F1F6E6BEE00A49591 /* MusicTrack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicTrack.swift; sourceTree = "<group>"; };
 		88A2507F1F63EB4700AF2455 /* Vox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vox.swift; sourceTree = "<group>"; };
 		88A250801F63EB4700AF2455 /* Spotify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Spotify.swift; sourceTree = "<group>"; };
 		88F5CD831F5A7FF70028C51C /* iTunes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iTunes.swift; sourceTree = "<group>"; };
@@ -111,7 +115,6 @@
 		88097E311F5F703B006C6E51 /* Manager */ = {
 			isa = PBXGroup;
 			children = (
-				88097E2F1F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift */,
 				886940D81F5AA90C004A6897 /* MusicPlayerManager.swift */,
 				884B50E11F602D7E00D49807 /* MusicPlayerFactory.swift */,
 			);
@@ -163,6 +166,7 @@
 			children = (
 				OBJ_8 /* MusicPlayer.swift */,
 				88F5CD891F5A868B0028C51C /* MusicPlayerDelegate.swift */,
+				88097E2F1F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift */,
 			);
 			path = Protocol;
 			sourceTree = "<group>";
@@ -176,6 +180,16 @@
 			);
 			path = Player;
 			sourceTree = "<group>";
+		};
+		8896CE1C1F6E6AD300A49591 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				8896CE1D1F6E6B5C00A49591 /* Enumeration.swift */,
+				8896CE1F1F6E6BEE00A49591 /* MusicTrack.swift */,
+			);
+			name = Model;
+			path = Sources/Model;
+			sourceTree = SOURCE_ROOT;
 		};
 		88F5CD8B1F5A98AE0028C51C /* Frameworks */ = {
 			isa = PBXGroup;
@@ -211,6 +225,7 @@
 		OBJ_7 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				8896CE1C1F6E6AD300A49591 /* Model */,
 				88841C981F5B0F5E00AA6A9B /* Protocol */,
 				88841C991F5B0FC500AA6A9B /* Player */,
 				88097E311F5F703B006C6E51 /* Manager */,
@@ -336,6 +351,8 @@
 				88F5CD8A1F5A868B0028C51C /* MusicPlayerDelegate.swift in Sources */,
 				8896CE1B1F6E605800A49591 /* Vox+MusicPlayer.swift in Sources */,
 				88841C9B1F5B0FFC00AA6A9B /* Global.swift in Sources */,
+				8896CE1E1F6E6B5C00A49591 /* Enumeration.swift in Sources */,
+				8896CE201F6E6BEE00A49591 /* MusicTrack.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

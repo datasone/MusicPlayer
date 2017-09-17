@@ -19,7 +19,7 @@ class Spotify {
     
     fileprivate var timer: Timer?
     
-    fileprivate var trackStartTime: TimeInterval = 0
+    fileprivate var _trackStartTime: TimeInterval = 0
     
     required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.spotify.bundleID) else { return nil }
@@ -75,15 +75,15 @@ class Spotify {
     @objc fileprivate func repositionCheckEvent(_ timer: Timer) {
         // check position
         let spotifyPosition = playerPosition
-        let accurateStartTime = trackStartDate(with: spotifyPosition)
+        let accurateStartTime = trackStartTime
         
-        let deltaPosition = accurateStartTime - trackStartTime
+        let deltaPosition = accurateStartTime - _trackStartTime
         if deltaPosition < -MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: spotifyPosition)
         } else if deltaPosition > MusicPlayerConfig.Precision {
             delegate?.player(self, playbackStateChanged: .rewinding, atPosition: spotifyPosition)
         }
-        trackStartTime = accurateStartTime
+        _trackStartTime = accurateStartTime
     }
     
     // MARK: - Notification Events
@@ -113,14 +113,7 @@ class Spotify {
         timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(repositionCheckEvent(_:)), userInfo: nil, repeats: true)
         RunLoop.main.add(timer!, forMode: .commonModes)
         // write down the track start time
-        trackStartTime = trackStartDate(with: playerPosition)
-    }
-    
-    // MARK: - Private
-    
-    fileprivate func trackStartDate(with playerPosition: TimeInterval) -> TimeInterval {
-        let currentTime = NSDate().timeIntervalSince1970
-        return currentTime - playerPosition
+        _trackStartTime = trackStartTime
     }
 }
 
