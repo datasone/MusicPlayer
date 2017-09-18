@@ -16,6 +16,7 @@
 		8870E01D1F63FE9A003C64CA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8870E01C1F63FE9A003C64CA /* AppDelegate.swift */; };
 		8870E01F1F63FE9A003C64CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8870E01E1F63FE9A003C64CA /* Assets.xcassets */; };
 		8870E0221F63FE9A003C64CA /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 8870E0201F63FE9A003C64CA /* MainMenu.xib */; };
+		887E46791F6F3E6300374F74 /* MusicPlayerDistributer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 887E46781F6F3E6300374F74 /* MusicPlayerDistributer.swift */; };
 		88841C9B1F5B0FFC00AA6A9B /* Global.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88841C9A1F5B0FFC00AA6A9B /* Global.swift */; };
 		8896CE191F6E604100A49591 /* Spotify+MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8896CE181F6E604100A49591 /* Spotify+MusicPlayer.swift */; };
 		8896CE1B1F6E605800A49591 /* Vox+MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8896CE1A1F6E605800A49591 /* Vox+MusicPlayer.swift */; };
@@ -75,6 +76,7 @@
 		8870E0211F63FE9A003C64CA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		8870E0231F63FE9A003C64CA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8870E0241F63FE9A003C64CA /* MusicPlayerDemo.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MusicPlayerDemo.entitlements; sourceTree = "<group>"; };
+		887E46781F6F3E6300374F74 /* MusicPlayerDistributer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicPlayerDistributer.swift; sourceTree = "<group>"; };
 		88841C9A1F5B0FFC00AA6A9B /* Global.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
 		8896CE181F6E604100A49591 /* Spotify+MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Spotify+MusicPlayer.swift"; sourceTree = "<group>"; };
 		8896CE1A1F6E605800A49591 /* Vox+MusicPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Vox+MusicPlayer.swift"; sourceTree = "<group>"; };
@@ -117,6 +119,7 @@
 			children = (
 				886940D81F5AA90C004A6897 /* MusicPlayerManager.swift */,
 				884B50E11F602D7E00D49807 /* MusicPlayerFactory.swift */,
+				887E46781F6F3E6300374F74 /* MusicPlayerDistributer.swift */,
 			);
 			name = Manager;
 			path = Sources/Manager;
@@ -341,6 +344,7 @@
 			files = (
 				OBJ_17 /* MusicPlayer.swift in Sources */,
 				8896CE191F6E604100A49591 /* Spotify+MusicPlayer.swift in Sources */,
+				887E46791F6F3E6300374F74 /* MusicPlayerDistributer.swift in Sources */,
 				88A250811F63EB4700AF2455 /* Vox.swift in Sources */,
 				885492581F6E582C00B79D8B /* iTunes+MusicPlayer.swift in Sources */,
 				88097E301F5F702E006C6E51 /* MusicPlayerManagerDelegate.swift in Sources */,
