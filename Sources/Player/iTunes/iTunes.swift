@@ -86,12 +86,18 @@ class iTunes {
         // check position
         let iTunesPosition = playerPosition
         let accurateStartTime = trackStartTime
-        
         let deltaPosition = accurateStartTime - _trackStartTime
-        if deltaPosition < -MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: iTunesPosition)
-        } else if deltaPosition > MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .rewinding, atPosition: iTunesPosition)
+        
+        if deltaPosition > -MusicPlayerConfig.Precision && deltaPosition < MusicPlayerConfig.Precision {
+            _trackStartTime = accurateStartTime
+            return
+        }
+        
+        let currentState = playbackState
+        if currentState == .fastForwarding || currentState == .rewinding {
+            delegate?.player(self, playbackStateChanged: currentState, atPosition: iTunesPosition)
+        } else {
+            delegate?.player(self, playbackStateChanged: .reposition, atPosition: iTunesPosition)
         }
         _trackStartTime = accurateStartTime
     }

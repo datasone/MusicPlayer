@@ -73,15 +73,20 @@ class Spotify {
     }
     
     @objc fileprivate func repositionCheckEvent(_ timer: Timer) {
+        // check playback state
+        guard playbackState.isActiveState
+            else {
+                timer.invalidate()
+                return
+        }
+        
         // check position
         let spotifyPosition = playerPosition
         let accurateStartTime = trackStartTime
-        
         let deltaPosition = accurateStartTime - _trackStartTime
-        if deltaPosition < -MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: spotifyPosition)
-        } else if deltaPosition > MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .rewinding, atPosition: spotifyPosition)
+        
+        if deltaPosition <= -MusicPlayerConfig.Precision || deltaPosition >= MusicPlayerConfig.Precision {
+            delegate?.player(self, playbackStateChanged: .reposition, atPosition: spotifyPosition)
         }
         _trackStartTime = accurateStartTime
     }

@@ -23,7 +23,7 @@ public protocol MusicPlayer: class {
     var repeatMode: MusicRepeatMode? { get set }
     var shuffleMode: MusicShuffleMode? { get set }
     var playerPosition: TimeInterval { get set }
-    
+    var trackStartTime: TimeInterval { get }
     var originalPlayer: SBApplication { get }
     
     func play()
@@ -50,15 +50,12 @@ public extension MusicPlayer {
     }
 }
 
+// MARK: - Check Event
+
 extension MusicPlayer {
     
     var trackStartTime: TimeInterval {
         let currentTime = NSDate().timeIntervalSince1970
         return currentTime - playerPosition
     }
-    
 }
-
-
-
-

@@ -12,14 +12,15 @@ public enum MusicPlaybackState {
     case playing
     case paused
     case fastForwarding
-    case rewinding
+    case rewinding    
+    case reposition
     
     var isActiveState: Bool {
         switch self {
-        case .playing, .fastForwarding, .rewinding:
-            return true
-        default:
+        case .stopped, .paused:
             return false
+        default:
+            return true
         }
     }
 }

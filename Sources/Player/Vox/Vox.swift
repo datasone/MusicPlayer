@@ -99,12 +99,10 @@ class Vox {
     fileprivate func repositionCheckEvent(_ position: TimeInterval) {
         // check position
         let accurateStartTime = trackStartTime
-        
         let deltaPosition = accurateStartTime - _trackStartTime
-        if deltaPosition < -MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .fastForwarding, atPosition: position)
-        } else if deltaPosition > MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .rewinding, atPosition: position)
+
+        if deltaPosition <= -MusicPlayerConfig.Precision || deltaPosition >= MusicPlayerConfig.Precision {
+            delegate?.player(self, playbackStateChanged: .reposition, atPosition: position)
         }
         _trackStartTime = accurateStartTime
     }
