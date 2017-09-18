@@ -15,22 +15,22 @@ extension Vox: MusicPlayer {
     
     var playbackState: MusicPlaybackState {
         guard isRunning,
-            let playerState = vox.playerState
-            else { return .stopped }
+              let playerState = vox.playerState
+        else { return .stopped }
         return MusicPlaybackState(playerState)
     }
     
     var repeatMode: MusicRepeatMode? {
         get {
             guard isRunning,
-                let repeateState = vox.repeatState
-                else { return nil }
+                  let repeateState = vox.repeatState
+            else { return nil }
             return MusicRepeatMode(repeateState)
         }
         set {
             guard isRunning,
-                let repeateState = newValue?.intValue
-                else { return }
+                  let repeateState = newValue?.intValue
+            else { return }
             vox.setRepeatState?(repeateState)
         }
     }
@@ -43,14 +43,14 @@ extension Vox: MusicPlayer {
     var playerPosition: TimeInterval {
         get {
             guard isRunning,
-                let currentTime = vox.currentTime
-                else { return 0 }
+                  let currentTime = vox.currentTime
+            else { return 0 }
             return currentTime
         }
         set {
             guard isRunning,
-                newValue >= 0
-                else { return }
+                  newValue >= 0
+            else { return }
             vox.setCurrentTime?(newValue)
         }
     }
