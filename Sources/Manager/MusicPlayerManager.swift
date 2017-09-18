@@ -126,7 +126,9 @@ extension MusicPlayerManager: MusicPlayerDelegate {
     }
     
     public func playerDidQuit(_ player: MusicPlayer) {
-        guard currentPlayer === player else { return }
+        guard currentPlayer != nil,
+              currentPlayer!.name == player.name
+        else { return }
         currentPlayer = nil
         delegate?.manager(self, trackingPlayerDidQuit: player)
         selectMusicPlayerFromList()

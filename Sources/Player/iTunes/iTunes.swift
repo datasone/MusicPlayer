@@ -154,10 +154,10 @@ fileprivate extension iTunesTrack {
     
     var musicTrack: MusicTrack? {
         guard mediaKind == .music,
-            let id = id?(),
-            let name = name,
-            let duration = duration
-            else { return nil }
+              let id = id?(),
+              let name = name,
+              let duration = duration
+        else { return nil }
         
         var artwork: NSImage? = nil
         if let artworks = artworks?(),
