@@ -9,7 +9,6 @@ import Foundation
 import ScriptingBridge
 import SpotifyBridge
 
-// MARK: - Music Player
 
 extension Spotify: MusicPlayer {
     

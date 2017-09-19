@@ -39,6 +39,7 @@ public protocol MusicPlayer: class {
     func stopPlayerTracking()
 }
 
+// Application Control
 public extension MusicPlayer {
     
     public var isRunning: Bool {
@@ -50,11 +51,10 @@ public extension MusicPlayer {
     }
 }
 
-// MARK: - Check Event
-
-extension MusicPlayer {
+// Start Time
+public extension MusicPlayer {
     
-    var trackStartTime: TimeInterval {
+    public var trackStartTime: TimeInterval {
         let currentTime = NSDate().timeIntervalSince1970
         return currentTime - playerPosition
     }
