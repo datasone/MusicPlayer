@@ -12,7 +12,7 @@ class HashClass: Hashable {
     public var hashValue: Int
     
     init?() {
-        hashValue = Int(arc4random()/2 + arc4random()/2)
+        hashValue = Int(arc4random()) + Int(arc4random())
     }
     
 }
