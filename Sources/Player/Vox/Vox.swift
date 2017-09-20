@@ -9,7 +9,7 @@ import Foundation
 import ScriptingBridge
 import VoxBridge
 
-class Vox {
+class Vox: HashClass {
     
     var vox: VoxApplication
     
@@ -17,15 +17,14 @@ class Vox {
     
     fileprivate(set) var currentTrack: MusicTrack?
     
-    fileprivate var timer: Timer?
-    
     fileprivate var _trackStartTime: TimeInterval = 0
     
     fileprivate var currentPlaybackState: MusicPlaybackState = .stopped
     
-    required init?() {
+    override required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.vox.bundleID) else { return nil }
         vox = player
+        super.init()
     }
     
     deinit {
@@ -45,12 +44,12 @@ class Vox {
     
     func stopPlayerTracking() {
         DistributedNotificationCenter.default().removeObserver(self)
-        timer?.invalidate()
+        TimerDispatcher.shared.unregister(player: self)
     }
     
     // MARK: - Player Event Handle
     
-    @objc fileprivate func playbackStateCheckEvent(_ timer: Timer) {
+    fileprivate func playbackStateCheckEvent() {
         switch playbackState {
         case .stopped:
             stoppedEvent()
@@ -70,7 +69,7 @@ class Vox {
     }
     
     fileprivate func stoppedEvent() {
-        timer?.invalidate()
+        TimerDispatcher.shared.unregister(player: self)
         guard currentPlaybackState != .stopped else { return }
         currentPlaybackState = .stopped
         delegate?.playerDidQuit(self)
@@ -118,9 +117,9 @@ class Vox {
     
     fileprivate func startPlaybackObserving() {
         // start timer
-        timer?.invalidate()
-        timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(playbackStateCheckEvent(_:)), userInfo: nil, repeats: true)
-        RunLoop.main.add(timer!, forMode: .commonModes)
+        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
+            self.playbackStateCheckEvent()
+        }
         // write down the track start time
         _trackStartTime = trackStartTime
     }

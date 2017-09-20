@@ -32,11 +32,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, MusicPlayerManagerDelegate {
     /// A place to add/remove music players for the manager.
     @IBAction func checkBoxValueChange(_ sender: NSButton) {
         guard let playerName = playerName(from: sender) else { return }
-        if sender.state == 1 {
+        if sender.state == .on {
             // log it
             append(log: "Add Player: \(playerName.rawValue)")
             manager.add(musicPlayer: playerName)
-        } else if sender.state == 0 {
+        } else if sender.state == .off {
             // log it
             append(log: "Remove Player: \(playerName.rawValue)")
             manager.remove(musicPlayer: playerName)
@@ -77,7 +77,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, MusicPlayerManagerDelegate {
     }
     
     private func append(log: String) {
-        guard var str = textView.string else { return }
+        var str = textView.string
         str.append(log+"\n")
         textView.string = str
         textView.scrollRangeToVisible(NSRange(location: str.characters.count - 1, length: 1))

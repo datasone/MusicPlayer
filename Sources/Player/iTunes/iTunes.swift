@@ -9,7 +9,7 @@ import Foundation
 import ScriptingBridge
 import iTunesBridge
 
-class iTunes {
+class iTunes: HashClass {
     
     var iTunesPlayer: iTunesApplication
     
@@ -17,13 +17,12 @@ class iTunes {
     
     fileprivate(set) var currentTrack: MusicTrack?
     
-    fileprivate var timer: Timer?
-    
     fileprivate var _trackStartTime: TimeInterval = 0
     
-    required init?() {
+    override required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.iTunes.bundleID) else { return nil }
         iTunesPlayer = player
+        super.init()
     }
     
     deinit {
@@ -42,7 +41,7 @@ class iTunes {
     
     func stopPlayerTracking() {
         currentTrack = nil
-        timer?.invalidate()
+        TimerDispatcher.shared.unregister(player: self)
         DistributedNotificationCenter.default().removeObserver(self)
     }
     
@@ -75,11 +74,11 @@ class iTunes {
         delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
     }
     
-    @objc fileprivate func repositionCheckEvent(_ timer: Timer) {
+    fileprivate func repositionCheckEvent() {
         // check playback state
         guard playbackState.isActiveState
         else {
-            timer.invalidate()
+            TimerDispatcher.shared.unregister(player: self)
             return
         }
         
@@ -102,7 +101,7 @@ class iTunes {
         _trackStartTime = accurateStartTime
     }
     
-    @objc fileprivate func runningCheckEvent(_ timer: Timer) {
+    fileprivate func runningCheckEvent() {
         guard !isRunning else { return }
         delegate?.playerDidQuit(self)
     }
@@ -134,17 +133,18 @@ class iTunes {
     
     fileprivate func startRepositionObserving() {
         // start timer
-        timer?.invalidate()
-        timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(repositionCheckEvent(_:)), userInfo: nil, repeats: true)
-        RunLoop.main.add(timer!, forMode: .commonModes)
+        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
+            // It's useless to weak self for player is strong referenced by the dispatcher's dictionary key.
+            self.repositionCheckEvent()
+        }
         // write down the track start time
         _trackStartTime = trackStartTime
     }
     
     fileprivate func startRunningObserving() {
-        timer?.invalidate()
-        timer = Timer(timeInterval: 1.5, target: self, selector: #selector(runningCheckEvent(_:)), userInfo: nil, repeats: false)
-        RunLoop.current.add(timer!, forMode: .commonModes)
+        TimerDispatcher.shared.register(player: self, timerPrecision: 1.5) { timeInterval in
+            self.runningCheckEvent()
+        }
     }
 }
 
@@ -161,8 +161,8 @@ fileprivate extension iTunesTrack {
         
         var artwork: NSImage? = nil
         if let artworks = artworks?(),
-            artworks.count > 0,
-            let iTunesArtwork = artworks[0] as? iTunesArtwork
+           artworks.count > 0,
+           let iTunesArtwork = artworks[0] as? iTunesArtwork
         {
             artwork = iTunesArtwork.data
         }

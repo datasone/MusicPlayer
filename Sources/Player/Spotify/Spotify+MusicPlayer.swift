@@ -9,7 +9,6 @@ import Foundation
 import ScriptingBridge
 import SpotifyBridge
 
-
 extension Spotify: MusicPlayer {
     
     var name: MusicPlayerName { return .spotify }

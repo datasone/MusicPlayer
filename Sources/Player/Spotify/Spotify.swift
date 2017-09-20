@@ -9,7 +9,7 @@ import Foundation
 import ScriptingBridge
 import SpotifyBridge
 
-class Spotify {
+class Spotify: HashClass {
     
     var spotifyPlayer: SpotifyApplication
     
@@ -17,13 +17,12 @@ class Spotify {
     
     fileprivate(set) var currentTrack: MusicTrack?
     
-    fileprivate var timer: Timer?
-    
     fileprivate var _trackStartTime: TimeInterval = 0
     
-    required init?() {
+    override required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.spotify.bundleID) else { return nil }
         spotifyPlayer = player
+        super.init()
     }
     
     deinit {
@@ -41,20 +40,20 @@ class Spotify {
     }
     
     func stopPlayerTracking() {
-        timer?.invalidate()
+        TimerDispatcher.shared.unregister(player: self)
         DistributedNotificationCenter.default().removeObserver(self)
     }
     
     // MARK: - Player Event Handle
     
     fileprivate func pauseEvent() {
+        TimerDispatcher.shared.unregister(player: self)
         delegate?.player(self, playbackStateChanged: .paused, atPosition: playerPosition)
-        timer?.invalidate()
     }
     
     fileprivate func stoppedEvent() {
+        TimerDispatcher.shared.unregister(player: self)
         delegate?.playerDidQuit(self)
-        timer?.invalidate()
     }
     
     fileprivate func playingEvent() {
@@ -72,12 +71,11 @@ class Spotify {
         delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
     }
     
-    @objc fileprivate func repositionCheckEvent(_ timer: Timer) {
+    fileprivate func repositionCheckEvent() {
         // check playback state
-        guard playbackState.isActiveState
-            else {
-                timer.invalidate()
-                return
+        guard playbackState.isActiveState else {
+            TimerDispatcher.shared.unregister(player: self)
+            return
         }
         
         // check position
@@ -114,9 +112,9 @@ class Spotify {
     
     fileprivate func startRepositionObserving() {
         // start timer
-        timer?.invalidate()
-        timer = Timer(timeInterval: MusicPlayerConfig.TimerInterval, target: self, selector: #selector(repositionCheckEvent(_:)), userInfo: nil, repeats: true)
-        RunLoop.main.add(timer!, forMode: .commonModes)
+        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
+            self.repositionCheckEvent()
+        }
         // write down the track start time
         _trackStartTime = trackStartTime
     }
