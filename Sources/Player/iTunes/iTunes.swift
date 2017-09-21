@@ -101,9 +101,15 @@ class iTunes: HashClass {
         _trackStartTime = accurateStartTime
     }
     
-    fileprivate func runningCheckEvent() {
-        guard !isRunning else { return }
-        delegate?.playerDidQuit(self)
+    fileprivate func runningCheckEvent(with date: Date) {
+        // Stop timer if needed
+        if Date().timeIntervalSince(date) >= 1.5 {
+            TimerDispatcher.shared.unregister(player: self)
+        }
+        // Running check
+        if !isRunning {
+            delegate?.playerDidQuit(self)
+        }
     }
     
     // MARK: - Notification Event
@@ -142,8 +148,9 @@ class iTunes: HashClass {
     }
     
     fileprivate func startRunningObserving() {
-        TimerDispatcher.shared.register(player: self, timerPrecision: 1.5) { timeInterval in
-            self.runningCheckEvent()
+        let currentDate = Date()
+        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
+            self.runningCheckEvent(with: currentDate)
         }
     }
 }
