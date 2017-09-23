@@ -17,19 +17,31 @@ public protocol MusicPlayer: class {
     
     init?()
     weak var delegate: MusicPlayerDelegate? { get set }
+    
+    /// Player name of the MusicPlayer instance.
     var name: MusicPlayerName { get }
+    /// The track the player is playing.
     var currentTrack: MusicTrack? { get }
+    /// The playback state of the player.
     var playbackState: MusicPlaybackState { get }
+    /// The repeate mode of the player.
     var repeatMode: MusicRepeatMode? { get set }
+    /// The shuffle mode of the player.
     var shuffleMode: MusicShuffleMode? { get set }
+    /// The player position of the player.
     var playerPosition: TimeInterval { get set }
-    var trackStartTime: TimeInterval { get }
+    /// The original ScritingBridge player of the MusicPlayer instance.
     var originalPlayer: SBApplication { get }
     
+    /// Make the player play.
     func play()
+    /// Pause the player.
     func pause()
+    /// Stop the player from playing.
     func stop()
+    /// Play the next song if possibled.
     func playNext()
+    /// Play the previous song if possibled.
     func playPrevious()
     
     /// Make the player start Tracking the external player.
@@ -42,10 +54,12 @@ public protocol MusicPlayer: class {
 // Application Control
 public extension MusicPlayer {
     
+    /// Check whether the player is running.
     public var isRunning: Bool {
         return originalPlayer.isRunning
     }
     
+    /// Activate the player from background or killed state.
     public func activate() {
         originalPlayer.activate()
     }
@@ -54,8 +68,8 @@ public extension MusicPlayer {
 // Start Time
 public extension MusicPlayer {
     
-    public var trackStartTime: TimeInterval {
-        let currentTime = NSDate().timeIntervalSince1970
-        return currentTime - playerPosition
+    /// The date of the current track started.
+    public var trackStartDate: Date {
+        return Date(timeIntervalSinceNow: -playerPosition)
     }
 }

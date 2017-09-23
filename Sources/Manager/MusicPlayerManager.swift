@@ -11,13 +11,11 @@ public class MusicPlayerManager {
     
     public weak var delegate: MusicPlayerManagerDelegate?
     
-    public fileprivate(set) var musicPlayers: [MusicPlayer]
+    public fileprivate(set) var musicPlayers = [MusicPlayer]()
     
     public fileprivate(set) weak var currentPlayer: MusicPlayer?
     
-    public init() {
-        musicPlayers = []
-    }
+    public init() {}
 }
 
 // MARK: - Public Manager Methods

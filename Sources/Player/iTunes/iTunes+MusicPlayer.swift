@@ -97,6 +97,25 @@ extension iTunes: MusicPlayer {
     }
 }
 
+extension iTunes: MusicPlayerEX {
+    
+    var originalPlayerCurrentTrack: MusicTrack? {
+        return iTunesPlayer.currentTrack?.musicTrack
+    }
+    
+    func observePlayerInfoNotification() {
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.iTunesPlayerInfo, object: nil)
+    }
+    
+    func removePlayerInfoNotification() {
+        DistributedNotificationCenter.default().removeObserver(self)
+    }
+    
+    func repositionCheckingErrorHandle() {
+        PlayerTimer.shared.unregister(self)
+    }
+}
+
 // MARK: - Enum Extension
 
 fileprivate extension MusicPlaybackState {
@@ -166,5 +185,3 @@ fileprivate extension MusicShuffleMode {
         }
     }
 }
-
-

@@ -75,6 +75,26 @@ extension Spotify: MusicPlayer {
     }
 }
 
+extension Spotify: MusicPlayerEX {
+    
+    var originalPlayerCurrentTrack: MusicTrack? {
+        return spotifyPlayer.currentTrack?.musicTrack
+    }
+    
+    func observePlayerInfoNotification() {
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.spotifyPlayerInfo, object: nil)
+    }
+    
+    func removePlayerInfoNotification() {
+        DistributedNotificationCenter.default().removeObserver(self)
+    }
+    
+    func repositionCheckingErrorHandle() {
+        PlayerTimer.shared.unregister(self)
+    }
+    
+}
+
 // MARK: - Enum Extension
 
 fileprivate extension MusicPlaybackState {

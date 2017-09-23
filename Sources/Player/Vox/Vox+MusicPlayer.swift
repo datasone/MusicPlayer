@@ -15,7 +15,7 @@ extension Vox: MusicPlayer {
     
     var playbackState: MusicPlaybackState {
         guard isRunning,
-              let playerState = vox.playerState
+              let playerState = voxPlayer.playerState
         else { return .stopped }
         return MusicPlaybackState(playerState)
     }
@@ -23,7 +23,7 @@ extension Vox: MusicPlayer {
     var repeatMode: MusicRepeatMode? {
         get {
             guard isRunning,
-                  let repeateState = vox.repeatState
+                  let repeateState = voxPlayer.repeatState
             else { return nil }
             return MusicRepeatMode(repeateState)
         }
@@ -31,7 +31,7 @@ extension Vox: MusicPlayer {
             guard isRunning,
                   let repeateState = newValue?.intValue
             else { return }
-            vox.setRepeatState?(repeateState)
+            voxPlayer.setRepeatState?(repeateState)
         }
     }
     
@@ -43,7 +43,7 @@ extension Vox: MusicPlayer {
     var playerPosition: TimeInterval {
         get {
             guard isRunning,
-                  let currentTime = vox.currentTime
+                  let currentTime = voxPlayer.currentTime
             else { return 0 }
             return currentTime
         }
@@ -51,38 +51,56 @@ extension Vox: MusicPlayer {
             guard isRunning,
                   newValue >= 0
             else { return }
-            vox.setCurrentTime?(newValue)
+            voxPlayer.setCurrentTime?(newValue)
         }
     }
     
     func play() {
         guard isRunning else { return }
-        vox.play?()
+        voxPlayer.play?()
     }
     
     func pause() {
         guard isRunning else { return }
-        vox.pause?()
+        voxPlayer.pause?()
     }
     
     func stop() {
         guard isRunning else { return }
-        vox.pause?()
+        voxPlayer.pause?()
     }
     
     func playNext() {
         guard isRunning else { return }
-        vox.next?()
+        voxPlayer.next?()
     }
     
     func playPrevious() {
         guard isRunning else { return }
-        vox.previous?()
+        voxPlayer.previous?()
     }
     
     var originalPlayer: SBApplication {
-        return vox as! SBApplication
+        return voxPlayer as! SBApplication
     }
+}
+
+extension Vox: MusicPlayerEX {
+    
+    var originalPlayerCurrentTrack: MusicTrack? {
+        return voxPlayer.musicTrack
+    }
+    
+    func observePlayerInfoNotification() {
+        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.voxTrackChanged, object: nil)
+    }
+    
+    func removePlayerInfoNotification() {
+        DistributedNotificationCenter.default().removeObserver(self)
+    }
+    
+    func repositionCheckingErrorHandle() {}
+    
 }
 
 // MARK: - Enum Extension
@@ -126,5 +144,22 @@ fileprivate extension MusicRepeatMode {
             return 2
         }
     }
+}
+
+// MARK: - VoxApplication
+
+extension VoxApplication {
     
+    var musicTrack: MusicTrack? {
+        guard (self as! SBApplication).isRunning,
+            let id = uniqueID,
+            let title = track,
+            let totalTime = totalTime
+            else { return nil }
+        var url: URL? = nil
+        if let trackURL = trackUrl {
+            url = URL(fileURLWithPath: trackURL)
+        }
+        return MusicTrack(id: id, title: title, album: album, artist: artist, duration: totalTime, artwork: artworkImage, lyrics: nil, url: url, originalTrack: nil)
+    }
 }

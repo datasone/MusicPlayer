@@ -9,104 +9,49 @@ import Foundation
 import ScriptingBridge
 import iTunesBridge
 
-class iTunes: HashClass {
+class iTunes {
     
     var iTunesPlayer: iTunesApplication
     
+    var currentTrack: MusicTrack?
+    
     weak var delegate: MusicPlayerDelegate?
     
-    fileprivate(set) var currentTrack: MusicTrack?
+    var rememberedTrackStateDate = Date()
     
-    fileprivate var _trackStartTime: TimeInterval = 0
+    fileprivate(set) var hashValue: Int
     
-    override required init?() {
+    required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.iTunes.bundleID) else { return nil }
         iTunesPlayer = player
-        super.init()
+        hashValue = Int(arc4random())
     }
     
     deinit {
         stopPlayerTracking()
     }
     
-    func startPlayerTracking() {
-        // Initialize Tracking state.
-        musicTrackCheckEvent()
-        delegate?.player(self, playbackStateChanged: playbackState, atPosition: playerPosition)
-        
-        // start tracking.
-        startRepositionObserving()
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.iTunesPlayerInfo, object: nil)
-    }
-    
-    func stopPlayerTracking() {
-        currentTrack = nil
-        TimerDispatcher.shared.unregister(player: self)
-        DistributedNotificationCenter.default().removeObserver(self)
-    }
-    
     // MARK: - Player Event Handle
     
-    fileprivate func pauseEvent() {
+    func pauseEvent() {
         // Rewind and fast forward would send pause notification.
         guard playbackState == .paused else { return }
         delegate?.player(self, playbackStateChanged: .paused, atPosition: playerPosition)
         startRunningObserving()
     }
     
-    fileprivate func stoppedEvent() {
+    func stoppedEvent() {
         delegate?.player(self, playbackStateChanged: .stopped, atPosition: playerPosition)
         startRunningObserving()
     }
     
-    fileprivate func playingEvent() {
+    func playingEvent() {
         musicTrackCheckEvent()
         delegate?.player(self, playbackStateChanged: .playing, atPosition: playerPosition)
-        startRepositionObserving()
+        startPeriodTimerObserving()
     }
     
-    fileprivate func musicTrackCheckEvent() {
-        guard isRunning,
-              let newTrack = iTunesPlayer.currentTrack?.musicTrack,
-              currentTrack == nil || currentTrack! != newTrack
-        else { return }
-        currentTrack = newTrack
-        delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
-    }
-    
-    fileprivate func repositionCheckEvent() {
-        // check playback state
-        guard playbackState.isActiveState
-        else {
-            TimerDispatcher.shared.unregister(player: self)
-            return
-        }
-        
-        // check position
-        let iTunesPosition = playerPosition
-        let accurateStartTime = trackStartTime
-        let deltaPosition = accurateStartTime - _trackStartTime
-        
-        if deltaPosition > -MusicPlayerConfig.Precision && deltaPosition < MusicPlayerConfig.Precision {
-            _trackStartTime = accurateStartTime
-            return
-        }
-        
-        let currentState = playbackState
-        if currentState == .fastForwarding || currentState == .rewinding {
-            delegate?.player(self, playbackStateChanged: currentState, atPosition: iTunesPosition)
-        } else {
-            delegate?.player(self, playbackStateChanged: .reposition, atPosition: iTunesPosition)
-        }
-        _trackStartTime = accurateStartTime
-    }
-    
-    fileprivate func runningCheckEvent(with date: Date) {
-        // Stop timer if needed
-        if Date().timeIntervalSince(date) >= 1.5 {
-            TimerDispatcher.shared.unregister(player: self)
-        }
-        // Running check
+    func runningCheckEvent() {
         if !isRunning {
             delegate?.playerDidQuit(self)
         }
@@ -114,7 +59,7 @@ class iTunes: HashClass {
     
     // MARK: - Notification Event
     
-    @objc fileprivate func playerInfoChanged(_ notification: Notification) {
+    @objc func playerInfoChanged(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let playerState = userInfo["Player State"] as? String
         else { return }
@@ -137,27 +82,30 @@ class iTunes: HashClass {
     
     // MARK: - Timer Actions
     
-    fileprivate func startRepositionObserving() {
+    func startPeriodTimerObserving() {
         // start timer
-        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
-            // It's useless to weak self for player is strong referenced by the dispatcher's dictionary key.
+        let event = PlayerTimer.Event(kind: .Infinite, precision: MusicPlayerConfig.TimerInterval) { time in
             self.repositionCheckEvent()
         }
+        PlayerTimer.shared.register(self, event: event)
+        
         // write down the track start time
-        _trackStartTime = trackStartTime
+        rememberedTrackStateDate = trackStartDate
     }
     
-    fileprivate func startRunningObserving() {
-        let currentDate = Date()
-        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
-            self.runningCheckEvent(with: currentDate)
+    func startRunningObserving() {
+        // stop date
+        let date = Date(timeIntervalSinceNow: 1.5)
+        let event = PlayerTimer.Event(kind: .Period(date), precision: MusicPlayerConfig.TimerInterval) { time in
+            self.runningCheckEvent()
         }
+        PlayerTimer.shared.register(self, event: event)
     }
 }
 
 // MARK: - Track
 
-fileprivate extension iTunesTrack {
+extension iTunesTrack {
     
     var musicTrack: MusicTrack? {
         guard mediaKind == .music,

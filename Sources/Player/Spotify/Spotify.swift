@@ -9,89 +9,49 @@ import Foundation
 import ScriptingBridge
 import SpotifyBridge
 
-class Spotify: HashClass {
+class Spotify {
     
     var spotifyPlayer: SpotifyApplication
     
+    var currentTrack: MusicTrack?
+    
     weak var delegate: MusicPlayerDelegate?
     
-    fileprivate(set) var currentTrack: MusicTrack?
+    var rememberedTrackStateDate = Date()
     
-    fileprivate var _trackStartTime: TimeInterval = 0
+    fileprivate(set) var hashValue: Int
     
-    override required init?() {
+    required init?() {
         guard let player = SBApplication(bundleIdentifier: MusicPlayerName.spotify.bundleID) else { return nil }
         spotifyPlayer = player
-        super.init()
+        hashValue = Int(arc4random())
     }
     
     deinit {
         stopPlayerTracking()
     }
     
-    func startPlayerTracking() {
-        // Initialize Tracking state.
-        musicTrackCheckEvent()
-        delegate?.player(self, playbackStateChanged: playbackState, atPosition: playerPosition)
-        
-        // start tracking.
-        startRepositionObserving()
-        DistributedNotificationCenter.default().addObserver(self, selector: #selector(playerInfoChanged(_:)), name: NSNotification.Name.spotifyPlayerInfo, object: nil)
-    }
-    
-    func stopPlayerTracking() {
-        TimerDispatcher.shared.unregister(player: self)
-        DistributedNotificationCenter.default().removeObserver(self)
-    }
-    
     // MARK: - Player Event Handle
     
-    fileprivate func pauseEvent() {
-        TimerDispatcher.shared.unregister(player: self)
+    func pauseEvent() {
+        PlayerTimer.shared.unregister(self)
         delegate?.player(self, playbackStateChanged: .paused, atPosition: playerPosition)
     }
     
-    fileprivate func stoppedEvent() {
-        TimerDispatcher.shared.unregister(player: self)
+    func stoppedEvent() {
+        PlayerTimer.shared.unregister(self)
         delegate?.playerDidQuit(self)
     }
     
-    fileprivate func playingEvent() {
+    func playingEvent() {
         musicTrackCheckEvent()
         delegate?.player(self, playbackStateChanged: .playing, atPosition: playerPosition)
-        startRepositionObserving()
-    }
-    
-    fileprivate func musicTrackCheckEvent() {
-        guard isRunning,
-              let newTrack = spotifyPlayer.currentTrack?.musicTrack,
-              currentTrack == nil || currentTrack! != newTrack
-        else { return }
-        currentTrack = newTrack
-        delegate?.player(self, didChangeTrack: newTrack, atPosition: playerPosition)
-    }
-    
-    fileprivate func repositionCheckEvent() {
-        // check playback state
-        guard playbackState.isActiveState else {
-            TimerDispatcher.shared.unregister(player: self)
-            return
-        }
-        
-        // check position
-        let spotifyPosition = playerPosition
-        let accurateStartTime = trackStartTime
-        let deltaPosition = accurateStartTime - _trackStartTime
-        
-        if deltaPosition <= -MusicPlayerConfig.Precision || deltaPosition >= MusicPlayerConfig.Precision {
-            delegate?.player(self, playbackStateChanged: .reposition, atPosition: spotifyPosition)
-        }
-        _trackStartTime = accurateStartTime
+        startPeriodTimerObserving()
     }
     
     // MARK: - Notification Events
     
-    @objc fileprivate func playerInfoChanged(_ notification: Notification) {
+    @objc func playerInfoChanged(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let playerState = userInfo["Player State"] as? String
         else { return }
@@ -110,19 +70,21 @@ class Spotify: HashClass {
     
     // MARK: - Timer Events
     
-    fileprivate func startRepositionObserving() {
+    func startPeriodTimerObserving() {
         // start timer
-        TimerDispatcher.shared.register(player: self, timerPrecision: MusicPlayerConfig.TimerInterval) { timeInterval in
+        let event = PlayerTimer.Event(kind: .Infinite, precision: MusicPlayerConfig.TimerInterval) { time in
             self.repositionCheckEvent()
         }
+        PlayerTimer.shared.register(self, event: event)
+
         // write down the track start time
-        _trackStartTime = trackStartTime
+        rememberedTrackStateDate = trackStartDate
     }
 }
 
 // MARK: - Spotify Track
 
-fileprivate extension SpotifyTrack {
+extension SpotifyTrack {
     
     var musicTrack: MusicTrack? {
         
