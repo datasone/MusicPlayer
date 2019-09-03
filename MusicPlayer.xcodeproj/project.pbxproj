@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		11016A8E231E63ED009B8F5F /* AppleScriptPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11016A8D231E63ED009B8F5F /* AppleScriptPlayer.swift */; };
 		BBBB6FB621E5AB7B007C2D92 /* MusicPlayerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_45A439C5C32FF62FCD7A52DB3A8E21CE /* MusicPlayerManager.swift */; };
 		BF_083EAA44F7514A4C4B1D61E12F3ADF90 /* ScriptingBridge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FR_30F744835115BF17E9C29FB97DF8C689 /* ScriptingBridge.framework */; };
 		BF_0867655C4007BA4669B839AADC65C878 /* MusicPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = FR_CB29141DC39F40FA114AC0D7B210B3C2 /* MusicPlayer.swift */; };
@@ -33,6 +34,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		11016A8D231E63ED009B8F5F /* AppleScriptPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleScriptPlayer.swift; sourceTree = "<group>"; };
 		FR_061FAB01B1BCBF67C3E6BDC91EDA2EE4 /* MusicPlayer-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MusicPlayer-Bridging-Header.h"; sourceTree = "<group>"; };
 		FR_0F53334A5C5A0D72EE6CD8EEDB6583F6 /* Global.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Global.swift; sourceTree = "<group>"; };
 		FR_11D19D26543CFDF3A4C46272832902F5 /* Audirvana.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Audirvana.swift; sourceTree = "<group>"; };
@@ -120,6 +122,7 @@
 		G_809B4C79612BD600A92B6B7E0DEBCF25 /* Mac */ = {
 			isa = PBXGroup;
 			children = (
+				11016A8D231E63ED009B8F5F /* AppleScriptPlayer.swift */,
 				FR_11D19D26543CFDF3A4C46272832902F5 /* Audirvana.swift */,
 				FR_3CB0DD50E6D97EDF6B1CF98A69CA2A92 /* iTunes.swift */,
 				FR_76409C18E62F982118FB4AAA97E6EA00 /* Spotify.swift */,
@@ -263,6 +266,7 @@
 				BF_346D63D8788ABB890A2EEC78CC9A041D /* MusicPlayerManager.swift in Sources */,
 				BF_7E8FB1E2677D28EEB9571142EFCBEBBC /* MusicPlayerManagerDelegate.swift in Sources */,
 				BF_B1F3F4FAA0D2ACEDDB5ADF00CB780F50 /* Spotify.swift in Sources */,
+				11016A8E231E63ED009B8F5F /* AppleScriptPlayer.swift in Sources */,
 				BF_7EEF1FD71A576BA348C1E8EB54D90F07 /* SpotifyBridge.swift in Sources */,
 				BF_9DBAD352E8AF0A3835B8BF2E09239CAF /* Vox.swift in Sources */,
 				BF_934C62C31ACEB6F27EC5D2702EBF913F /* VoxBridge.swift in Sources */,

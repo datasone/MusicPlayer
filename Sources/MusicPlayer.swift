@@ -54,6 +54,7 @@ public enum MusicPlayerName: String, CaseIterable {
     case spotify    = "Spotify"
     case vox        = "Vox"
     case audirvana  = "Audirvana Plus"
+    case asplayer   = "AppleScriptPlayer"
     
     #elseif os(iOS)
     
@@ -150,6 +151,7 @@ extension MusicPlayerName {
         case .spotify:   return "com.spotify.client"
         case .vox:       return "com.coppertino.Vox"
         case .audirvana: return "com.audirvana.Audirvana-Plus"
+        case .asplayer:  return ""
         }
     }
     
@@ -159,6 +161,7 @@ extension MusicPlayerName {
         case .spotify:   return Spotify.self
         case .vox:       return Vox.self
         case .audirvana: return Audirvana.self
+        case .asplayer:  return AppleScriptPlayer.self
         }
     }
 }
